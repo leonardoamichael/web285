@@ -26,4 +26,16 @@
     <li><a href="submit.php">Submit Recipe</a></li>
     <li><a href="about.php">About</a></li>
   </ul>
+
+  <?php if (isset($_SESSION['user_id'])): ?>
+    <div class="nav-right">
+      <span class="nav-user">
+        <?= htmlspecialchars($_SESSION['username']) ?>
+      </span>
+
+      <a class="nav-logout" href="logout.php">Logout</a>
+    </div>
+  <?php else: ?>
+    <button type="button" id="loginLink" class="loginLink">Login</button>
+  <?php endif; ?>
 </nav>

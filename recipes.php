@@ -1,3 +1,5 @@
+
+<?php require_once 'includes/initialize.php'; ?>
 <?php include 'includes/header.php'; ?>
 
 <div id="container">
