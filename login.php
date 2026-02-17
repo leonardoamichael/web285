@@ -1,6 +1,5 @@
 <?php
 
-
 require_once 'includes/initialize.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -12,14 +11,15 @@ $username_or_email = trim($_POST['username'] ?? '');
 $password = $_POST['password'] ?? '';
 
 if ($username_or_email === '' || $password === '') {
-  redirect_error('login_required', 'index.php'); // or make a new error code later
+  redirect_error('login_required', 'index.php');
 }
 
-$db = db_connect();
+// NOTE: initialize.php already created $db = db_connect();
+// so do NOT call db_connect() again here.
 
-$sql = "SELECT id, username, password_hash, role
-        FROM users
-        WHERE username = ? OR email = ?
+$sql = "SELECT id_usr, username_usr, password_hash_usr, id_rol_usr
+        FROM user_usr
+        WHERE username_usr = ? OR email_usr = ?
         LIMIT 1";
 
 $stmt = $db->prepare($sql);
@@ -34,24 +34,23 @@ $result = $stmt->get_result();
 $user = $result->fetch_assoc();
 
 $stmt->close();
-$db->close();
 
-if (!$user || !password_verify($password, $user['password_hash'])) {
-  // Add a nicer error code later like 'login_failed'
+// Validate login
+if (!$user || !password_verify($password, $user['password_hash_usr'])) {
   header('Location: error.php?code=login_failed&return=index.php');
-exit;
-}
-
-// ✅ Logged in
-$_SESSION['user_id'] = (int)$user['id'];
-$_SESSION['username'] = $user['username'];
-$_SESSION['role'] = $user['role'];
-
-// Redirect by role (simple)
-if ($user['role'] === 'admin') {
-  header('Location: admin.php'); // create later, or change to index.php for now
   exit;
 }
 
-header('Location: submit.php');
+// ✅ Logged in
+$_SESSION['user_id'] = (int)$user['id_usr'];
+$_SESSION['username'] = $user['username_usr'];
+$_SESSION['role_id'] = (int)$user['id_rol_usr'];
+
+// Redirect by role_id (admin = 1, member = 2)
+if ($_SESSION['role_id'] === 1) {
+  header('Location: admin.php');
+  exit;
+}
+
+header('Location: profile.php');
 exit;

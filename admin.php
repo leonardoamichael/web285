@@ -1,55 +1,60 @@
-<?php require_once 'includes/initialize.php'; ?>
-<?php include 'includes/header.php'; ?>
+<?php
+require_once 'includes/initialize.php';
+
+// Must be logged in
+if (!isset($_SESSION['user_id'])) {
+  redirect_error('login_required', 'index.php');
+}
+
+// Must be admin (admin role_id = 1 from your seed)
+if (($_SESSION['role_id'] ?? 0) != 1) {
+  redirect_error('access_denied', 'index.php');
+}
+
+include 'includes/header.php';
+
+$minutes = 15;
+
+$stmt = $db->prepare(
+  "SELECT u.username_usr, a.last_seen_act
+   FROM active_user_act a
+   JOIN user_usr u ON u.id_usr = a.id_usr_act
+   WHERE a.last_seen_act >= (NOW() - INTERVAL ? MINUTE)
+   ORDER BY a.last_seen_act DESC"
+);
+
+$stmt->bind_param('i', $minutes);
+$stmt->execute();
+$result = $stmt->get_result();
+
+// Store rows so we can count + display without double-fetching
+$active = [];
+while ($row = $result->fetch_assoc()) {
+  $active[] = $row;
+}
+$stmt->close();
+?>
 
 <div id="container">
   <main>
     <h1>Admin Panel</h1>
 
-    <?php if (!isset($_SESSION['user_id'])): ?>
-      <?php header('Location: error.php?code=login_required'); exit; ?>
+    <h2>Active users (last <?= (int)$minutes ?> min): <?= count($active) ?></h2>
+
+    <?php if (count($active) === 0): ?>
+      <p>No active users right now.</p>
+    <?php else: ?>
+      <ul>
+        <?php foreach ($active as $row): ?>
+          <li>
+            <?= h($row['username_usr']) ?>
+            (last seen: <?= h($row['last_seen_act']) ?>)
+          </li>
+        <?php endforeach; ?>
+      </ul>
     <?php endif; ?>
 
-    <?php if ($_SESSION['role'] !== 'admin'): ?>
-      <?php header('Location: error.php?code=access_denied'); exit; ?>
-    <?php endif; ?>
-
-    <?php
-    if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'admin') {
-    redirect_error('access_denied', 'index.php');
-    }
-    // after admin check
-    $minutes = 15;
-
-    $stmt = $db->prepare(
-    "SELECT u.username, a.last_seen
-    FROM active_users a
-    JOIN users u ON u.id = a.user_id
-    WHERE a.last_seen >= (NOW() - INTERVAL ? MINUTE)
-    ORDER BY a.last_seen DESC"
-    );
-    $stmt->bind_param('i', $minutes);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    $active = [];
-    while ($row = $result->fetch_assoc()) {
-    $active[] = $row;
-    }
-    $count = count($active);
-    ?>
-
-    
-
-    <h2>Active users (last <?= (int)$minutes ?> min): <?= $count ?></h2>
-    <ul>
-    <?php foreach ($active as $row): ?>
-    <li><?= htmlspecialchars($row['username']) ?> (last seen: <?= htmlspecialchars($row['last_seen']) ?>)</li>
-    <?php endforeach; ?>
-    </ul>
-
-    <?php $stmt->close(); ?>
-
-    <p>Welcome, <?= htmlspecialchars($_SESSION['username']) ?>.</p>
+    <p>Welcome, <?= h($_SESSION['username']) ?>.</p>
     <p>Admin functionality coming soon.</p>
   </main>
 </div>

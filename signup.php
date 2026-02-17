@@ -32,13 +32,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $form_errors['general'] = 'That username or email is already in use.';
   }
 
-  // Create + auto-login
-  if (empty($form_errors)) {
-    $new_id = create_user($db, $username, $email, $password, 'member');
-    login_user($new_id, $username, 'member');
-    header('Location: profile.php');
-    exit;
-  }
+// Create + auto-login
+if (empty($form_errors)) {
+  $new_id = create_user($db, $username, $email, $password);
+
+  $role_id = 2; // member
+  login_user($new_id, $username, $role_id);
+
+  header('Location: profile.php');
+  exit;
+}
 }
 ?>
 
