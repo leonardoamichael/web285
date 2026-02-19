@@ -2,22 +2,31 @@
 require_once 'includes/initialize.php';
 include 'includes/header.php';
 
-$code = $_GET['code'] ?? 'not_found';
+/* Resolve error inputs */
+$code   = $_GET['code'] ?? 'not_found';
 $return = $_GET['return'] ?? 'index.php';
 
+/* Fallback safety */
 if (!isset($errors[$code])) {
   $code = 'not_found';
 }
 
-$title = $errors[$code]['title'];
+$title   = $errors[$code]['title'];
 $message = $errors[$code]['message'];
 ?>
 
 <div id="container">
   <main>
+
     <h1><?= htmlspecialchars($title) ?></h1>
     <p><?= htmlspecialchars($message) ?></p>
-    <p><a href="<?= htmlspecialchars($return) ?>">Go back</a></p>
+
+    <p>
+      <a href="<?= htmlspecialchars($return) ?>">
+        Go back
+      </a>
+    </p>
+
   </main>
 </div>
 

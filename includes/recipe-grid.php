@@ -1,15 +1,72 @@
 <div class="recipe-grid">
 
-<?php if (!empty($recipes)): ?>
+<?php
+/**
+ * Recipe visibility filtering
+ *
+ * This grid assumes the calling page already filtered recipes correctly.
+ * As a safety net, if status/owner fields are present, non-approved
+ * recipes are hidden from public viewers.
+ */
 
-  <?php foreach ($recipes as $recipe): ?>
+$viewer_id   = (int) ($_SESSION['user_id'] ?? 0);
+$viewer_role = (string) ($_SESSION['role'] ?? '');
+$is_admin    = ($viewer_role === 'admin');
+
+$visible_recipes = [];
+
+if (!empty($recipes) && is_array($recipes)) {
+
+  foreach ($recipes as $r) {
+
+    /*
+     * If caller did not provide moderation/ownership fields,
+     * treat dataset as already safe.
+     */
+    if (!isset($r['status_rec']) && !isset($r['id_usr_rec'])) {
+      $visible_recipes[] = $r;
+      continue;
+    }
+
+    $status    = (string) ($r['status_rec'] ?? 'approved');
+    $owner_id  = (int) ($r['id_usr_rec'] ?? 0);
+    $is_owner  = ($viewer_id > 0 && $owner_id === $viewer_id);
+
+    /* Public visibility */
+    if ($status === 'approved') {
+      $visible_recipes[] = $r;
+      continue;
+    }
+
+    /* Owner / admin visibility */
+    if ($is_admin || $is_owner) {
+      $visible_recipes[] = $r;
+    }
+  }
+}
+?>
+
+<?php if (!empty($visible_recipes)): ?>
+
+  <?php foreach ($visible_recipes as $recipe): ?>
     <div class="tile">
-      <?= htmlspecialchars($recipe['title']) ?>
+
+      <a href="recipe.php?id=<?= (int) $recipe['id_rec'] ?>">
+        <?= h($recipe['title_rec']) ?>
+      </a>
+
+      <?php if (isset($recipe['status_rec']) && (string) $recipe['status_rec'] !== 'approved'): ?>
+        <div class="recipe-status">
+          <small>Status: <?= h($recipe['status_rec']) ?></small>
+        </div>
+      <?php endif; ?>
+
     </div>
   <?php endforeach; ?>
 
 <?php else: ?>
 
+  <!-- Empty-state placeholders -->
   <div class="tile">Recipe Placeholder</div>
   <div class="tile">Recipe Placeholder</div>
   <div class="tile">Recipe Placeholder</div>

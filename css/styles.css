@@ -126,6 +126,20 @@ nav a:hover {
   background: #eee;
 }
 
+.nav-user,
+.nav-admin {
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--text);
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+}
+
+.nav-user:hover,
+.nav-admin:hover {
+  background: #eee;
+}
+
 /* =========================
    Grid / Tiles
 ========================= */
@@ -144,6 +158,14 @@ nav a:hover {
   font-weight: 500;
   padding: 1rem;
   text-align: center;
+}
+
+.tile a:hover {
+  text-decoration: none;
+}
+
+.tile:hover {
+  transform: translateY(-2px);
 }
 
 /* =========================
@@ -241,6 +263,129 @@ nav a:hover {
 
 .login-helper a:hover {
   text-decoration: underline;
+}
+
+.recipe-form {
+  display: grid;
+  gap: 1rem;
+  max-width: 900px;
+}
+
+.recipe-form h2 {
+  margin: 1.25rem 0 0.25rem;
+}
+
+.recipe-form p {
+  margin: 0 0 0.5rem;
+  opacity: 0.9;
+}
+
+.recipe-form label {
+  font-weight: 600;
+}
+
+.recipe-form input[type="text"],
+.recipe-form input[type="number"],
+.recipe-form input[type="email"],
+.recipe-form input[type="password"],
+.recipe-form select,
+.recipe-form textarea {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid #999;
+  border-radius: 10px;
+  font: inherit;
+  background: #fff;
+}
+
+.recipe-form textarea {
+  resize: vertical;
+}
+
+/* Ingredient rows: make each fieldset look like a tidy row */
+.recipe-form fieldset {
+  border: 1px solid rgba(0,0,0,0.12);
+  border-radius: 12px;
+  padding: 0.75rem;
+  margin: 0;
+  background: rgba(255,255,255,0.6);
+}
+
+.recipe-form legend {
+  padding: 0 0.4rem;
+  font-weight: 700;
+}
+
+.recipe-form fieldset {
+  display: grid;
+  gap: 0.5rem;
+}
+
+/* On desktop, lay ingredient fields in columns */
+@media (min-width: 900px) {
+  .recipe-form fieldset {
+    grid-template-columns: 140px 220px 1fr 1fr;
+    align-items: end;
+  }
+
+  .recipe-form fieldset legend {
+    grid-column: 1 / -1;
+  }
+
+  /* Make labels sit above each input */
+  .recipe-form fieldset label {
+    font-size: 0.9rem;
+  }
+}
+
+/* Steps look like cards */
+.recipe-form textarea[name="step[]"] {
+  min-height: 90px;
+  background: rgba(255,255,255,0.85);
+}
+
+/* File input spacing */
+.recipe-form input[type="file"] {
+  padding: 0.25rem 0;
+}
+
+/* Submit button matches your style */
+.recipe-form button[type="submit"] {
+  width: fit-content;
+  padding: 0.65rem 1rem;
+  border: 1px solid var(--text);
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.recipe-form button[type="submit"]:hover {
+  background: #eee;
+}
+
+.recipe-form [role="alert"] {
+  margin: 0;
+}
+
+#addIngredientBtn,
+#addStepBtn {
+  width: fit-content;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid var(--text);
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+}
+
+#addIngredientBtn:hover,
+#addStepBtn:hover {
+  background: #eee;
+}
+
+#addIngredientBtn:disabled,
+#addStepBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 /* =========================
