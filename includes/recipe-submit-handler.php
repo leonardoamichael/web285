@@ -35,10 +35,16 @@ function handle_recipe_submit(mysqli $db): array
     $errors['title'] = 'Title is required (max 120 characters).';
   }
 
-  $type_id  = (int) ($_POST['type'] ?? 0);
-  $style_id = (int) ($_POST['style'] ?? 0);
+  $type_ids  = $_POST['type']  ?? [];
+  $style_ids = $_POST['style'] ?? [];
+  $diet_ids  = $_POST['diet']  ?? [];
 
-  $diet_ids = $_POST['diet'] ?? [];
+  if (!is_array($type_ids)) {
+    $type_ids = [];
+  }
+  if (!is_array($style_ids)) {
+    $style_ids = [];
+  }
   if (!is_array($diet_ids)) {
     $diet_ids = [];
   }
@@ -105,23 +111,30 @@ function handle_recipe_submit(mysqli $db): array
       throw new Exception("Prepare failed: " . $db->error);
     }
 
-    $cat_ids = [];
+  $cat_ids = [];
 
-    if ($type_id > 0) {
-      $cat_ids[] = $type_id;
+  foreach ($type_ids as $t) {
+    $t = (int) $t;
+    if ($t > 0) {
+      $cat_ids[] = $t;
     }
+  }
 
-    if ($style_id > 0) {
-      $cat_ids[] = $style_id;
+  foreach ($style_ids as $s) {
+    $s = (int) $s;
+    if ($s > 0) {
+      $cat_ids[] = $s;
     }
+  }
 
-    foreach ($diet_ids as $d) {
-      $d = (int) $d;
-      if ($d > 0) {
-        $cat_ids[] = $d;
-      }
+  foreach ($diet_ids as $d) {
+    $d = (int) $d;
+    if ($d > 0) {
+      $cat_ids[] = $d;
     }
-    $cat_ids = array_values(array_unique($cat_ids));
+  }
+
+  $cat_ids = array_values(array_unique($cat_ids));
 
     foreach ($cat_ids as $cat_id) {
       $stmt_cat->bind_param('ii', $recipe_id, $cat_id);

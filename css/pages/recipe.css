@@ -132,3 +132,48 @@
 .recipe-back {
   margin: 0.25rem 0 0;
 }
+
+/* =========================
+   Recipe Category Pills
+========================= */
+
+.recipe-tags {
+  margin-top: 0.75rem;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.tag-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tag-label {
+  font-weight: 700;
+  opacity: 0.85;
+}
+
+.tag-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.tag-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.55rem;
+  border: 1px solid var(--border, rgba(0,0,0,0.15));
+  background: var(--surface, #fffaf5);
+  border-radius: 999px;
+  font-size: 0.9rem;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.tag-pill--more {
+  opacity: 0.75;
+  font-weight: 700;
+}

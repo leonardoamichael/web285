@@ -112,6 +112,43 @@ while ($row = $result->fetch_assoc()) {
 
 $stmt->close();
 
+/* 5) Fetch categories (type/style/diet) */
+$stmt = $db->prepare(
+  "SELECT c.group_cat, c.name_cat
+   FROM recipe_category_reccat rc
+   JOIN category_cat c ON c.id_cat = rc.id_cat_reccat
+   WHERE rc.id_rec_reccat = ?
+   ORDER BY
+     CASE c.group_cat
+       WHEN 'type' THEN 1
+       WHEN 'style' THEN 2
+       WHEN 'diet' THEN 3
+       ELSE 9
+     END,
+     c.name_cat ASC"
+);
+
+$stmt->bind_param('i', $id);
+$stmt->execute();
+$result = $stmt->get_result();
+
+$cats_by_group = [
+  'type'  => [],
+  'style' => [],
+  'diet'  => [],
+];
+
+while ($row = $result->fetch_assoc()) {
+  $grp = (string) ($row['group_cat'] ?? '');
+  $name = trim((string) ($row['name_cat'] ?? ''));
+
+  if ($name !== '' && isset($cats_by_group[$grp])) {
+    $cats_by_group[$grp][] = $name;
+  }
+}
+
+$stmt->close();
+
 /* Fallback image */
 $default_image = 'images/recipe-book.png';
 ?>
@@ -143,6 +180,49 @@ $default_image = 'images/recipe-book.png';
         <?php endif; ?>
       </p>
     </header>
+
+    <?php
+      // Presentation limits (tweak anytime)
+      $max_per_group = 4;  // e.g., show up to 4 pills per group
+    ?>
+
+    <?php if (!empty($cats_by_group['type']) || !empty($cats_by_group['style']) || !empty($cats_by_group['diet'])): ?>
+      <div class="recipe-tags" aria-label="Recipe categories">
+        <?php
+          $groups = [
+            'type'  => 'Type',
+            'style' => 'Style',
+            'diet'  => 'Diet',
+          ];
+        ?>
+
+        <?php foreach ($groups as $key => $label): ?>
+          <?php if (!empty($cats_by_group[$key])): ?>
+            <?php
+              $all = $cats_by_group[$key];
+              $visible = array_slice($all, 0, $max_per_group);
+              $overflow = max(0, count($all) - count($visible));
+            ?>
+
+            <div class="tag-group">
+              <span class="tag-label"><?= h($label) ?>:</span>
+
+              <div class="tag-pills" role="list">
+                <?php foreach ($visible as $pill): ?>
+                  <span class="tag-pill" role="listitem"><?= h($pill) ?></span>
+                <?php endforeach; ?>
+
+                <?php if ($overflow > 0): ?>
+                  <span class="tag-pill tag-pill--more" aria-label="<?= $overflow ?> more <?= h($label) ?> categories">
+                    +<?= (int) $overflow ?> more
+                  </span>
+                <?php endif; ?>
+              </div>
+            </div>
+          <?php endif; ?>
+        <?php endforeach; ?>
+      </div>
+    <?php endif; ?>
 
     <div class="recipe-layout">
 

@@ -292,6 +292,84 @@ if (
                 <?php endif; ?>
 
                 <hr>
+                <?php
+                /* Categories for admin tools */
+                $cats = ['type' => [], 'style' => [], 'diet' => []];
+
+                $res = $db->query(
+                "SELECT id_cat, group_cat, name_cat
+                FROM category_cat
+                ORDER BY group_cat ASC, name_cat ASC"
+                );
+
+                if ($res) {
+                while ($row = $res->fetch_assoc()) {
+                    $g = (string) ($row['group_cat'] ?? '');
+                    if (isset($cats[$g])) {
+                    $cats[$g][] = $row;
+                    }
+                }
+                $res->free();
+                }
+                ?>
+
+                <hr>
+
+                <h3>Manage Categories</h3>
+
+                <form method="post" action="includes/admin-actions-handler.php" class="admin-inline-form">
+                <input type="hidden" name="action" value="category_create">
+
+                <label>
+                    Group
+                    <select name="group_cat" required>
+                    <option value="type">Type</option>
+                    <option value="style">Style</option>
+                    <option value="diet">Diet</option>
+                    </select>
+                </label>
+
+                <label>
+                    Name
+                    <input type="text" name="name_cat" maxlength="60" required>
+                </label>
+
+                <button type="submit">Add</button>
+                </form>
+
+                <?php foreach ($cats as $group => $items): ?>
+                <h4><?= h(ucfirst($group)) ?></h4>
+
+                <?php if (empty($items)): ?>
+                    <p>No categories.</p>
+                <?php else: ?>
+                    <ul>
+                    <?php foreach ($items as $c): ?>
+                        <li class="admin-recipe-row">
+                        <form method="post" action="includes/admin-actions-handler.php" class="admin-inline-form">
+                            <input type="hidden" name="action" value="category_rename">
+                            <input type="hidden" name="id_cat" value="<?= (int) $c['id_cat'] ?>">
+
+                            <input
+                            type="text"
+                            name="name_cat"
+                            maxlength="60"
+                            value="<?= h($c['name_cat']) ?>"
+                            required
+                            >
+                            <button type="submit">Save</button>
+                        </form>
+
+                        <form method="post" action="includes/admin-actions-handler.php" class="admin-inline-form" onsubmit="return confirm('Delete this category?');">
+                            <input type="hidden" name="action" value="category_delete">
+                            <input type="hidden" name="id_cat" value="<?= (int) $c['id_cat'] ?>">
+                            <button type="submit">Delete</button>
+                        </form>
+                        </li>
+                    <?php endforeach; ?>
+                    </ul>
+                <?php endif; ?>
+                <?php endforeach; ?>
 
                 <h3>Active users (last 15 min): <?= count($active) ?></h3>
 

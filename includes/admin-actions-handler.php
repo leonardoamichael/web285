@@ -160,6 +160,11 @@ if ($action === 'delete_recipe_confirm') {
     $stmt->execute();
     $stmt->close();
 
+    $stmt = $db->prepare("DELETE FROM recipe_category_reccat WHERE id_rec_reccat = ?");
+    $stmt->bind_param('i', $recipe_id);
+    $stmt->execute();
+    $stmt->close();
+
     $stmt = $db->prepare("DELETE FROM recipe_rec WHERE id_rec = ?");
     $stmt->bind_param('i', $recipe_id);
     $stmt->execute();
@@ -180,6 +185,177 @@ if ($action === 'delete_recipe_confirm') {
 
   unlink_images_safely($paths);
   admin_redirect_msg('Recipe deleted.');
+}
+
+/**
+ * Create a new category.
+ *
+ * Validates group and name, prevents duplicates within group.
+ */
+if ($action === 'category_create') {
+
+  $group = trim((string) ($_POST['group_cat'] ?? ''));
+  $name  = trim((string) ($_POST['name_cat'] ?? ''));
+
+  $allowed_groups = ['type', 'style', 'diet'];
+
+  if (!in_array($group, $allowed_groups, true)) {
+    admin_redirect_err('Invalid category group.');
+  }
+
+  if ($name === '' || mb_strlen($name) > 60) {
+    admin_redirect_err('Category name required (max 60).');
+  }
+
+  $name_norm = mb_strtolower($name);
+
+  $stmt = $db->prepare(
+    "SELECT id_cat
+     FROM category_cat
+     WHERE group_cat = ? AND LOWER(name_cat) = ?
+     LIMIT 1"
+  );
+
+  $stmt->bind_param('ss', $group, $name_norm);
+  $stmt->execute();
+
+  $res = $stmt->get_result();
+  $exists = (bool) $res->fetch_assoc();
+
+  $res->free();
+  $stmt->close();
+
+  if ($exists) {
+    admin_redirect_err('Category already exists.');
+  }
+
+  $stmt = $db->prepare(
+    "INSERT INTO category_cat (group_cat, name_cat)
+     VALUES (?, ?)"
+  );
+
+  $stmt->bind_param('ss', $group, $name);
+  $stmt->execute();
+  $stmt->close();
+
+  admin_redirect_msg('Category added.');
+}
+
+/**
+ * Rename an existing category.
+ *
+ * Validates category ID and name, prevents duplicates within group.
+ */
+if ($action === 'category_rename') {
+
+  $id   = (int) ($_POST['id_cat'] ?? 0);
+  $name = trim((string) ($_POST['name_cat'] ?? ''));
+
+  if ($id <= 0) {
+    admin_redirect_err('Invalid category.');
+  }
+
+  if ($name === '' || mb_strlen($name) > 60) {
+    admin_redirect_err('Category name required (max 60).');
+  }
+
+  $stmt = $db->prepare(
+    "SELECT group_cat
+     FROM category_cat
+     WHERE id_cat = ?
+     LIMIT 1"
+  );
+
+  $stmt->bind_param('i', $id);
+  $stmt->execute();
+
+  $res = $stmt->get_result();
+  $row = $res->fetch_assoc();
+
+  $res->free();
+  $stmt->close();
+
+  if (!$row) {
+    admin_redirect_err('Category not found.');
+  }
+
+  $group = (string) $row['group_cat'];
+  $name_norm = mb_strtolower($name);
+
+  $stmt = $db->prepare(
+    "SELECT id_cat
+     FROM category_cat
+     WHERE group_cat = ?
+       AND LOWER(name_cat) = ?
+       AND id_cat <> ?
+     LIMIT 1"
+  );
+
+  $stmt->bind_param('ssi', $group, $name_norm, $id);
+  $stmt->execute();
+
+  $res = $stmt->get_result();
+  $dupe = (bool) $res->fetch_assoc();
+
+  $res->free();
+  $stmt->close();
+
+  if ($dupe) {
+    admin_redirect_err('Duplicate category name.');
+  }
+
+  $stmt = $db->prepare(
+    "UPDATE category_cat
+     SET name_cat = ?
+     WHERE id_cat = ?"
+  );
+
+  $stmt->bind_param('si', $name, $id);
+  $stmt->execute();
+  $stmt->close();
+
+  admin_redirect_msg('Category updated.');
+}
+
+/**
+ * Delete a category.
+ *
+ * Refuses deletion if category is in use by recipes.
+ */
+if ($action === 'category_delete') {
+
+  $id = (int) ($_POST['id_cat'] ?? 0);
+
+  if ($id <= 0) {
+    admin_redirect_err('Invalid category.');
+  }
+
+  $stmt = $db->prepare(
+    "SELECT 1
+     FROM recipe_category_reccat
+     WHERE id_cat_reccat = ?
+     LIMIT 1"
+  );
+
+  $stmt->bind_param('i', $id);
+  $stmt->execute();
+
+  $res = $stmt->get_result();
+  $in_use = (bool) $res->fetch_assoc();
+
+  $res->free();
+  $stmt->close();
+
+  if ($in_use) {
+    admin_redirect_err('Category is in use.');
+  }
+
+  $stmt = $db->prepare("DELETE FROM category_cat WHERE id_cat = ?");
+  $stmt->bind_param('i', $id);
+  $stmt->execute();
+  $stmt->close();
+
+  admin_redirect_msg('Category deleted.');
 }
 
 admin_redirect_err('Invalid action.');
