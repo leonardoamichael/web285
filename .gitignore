@@ -1,3 +1,4 @@
 includes/db-credentials.php
 recipe.sql
 updateddb.sql
+uploads/recipes

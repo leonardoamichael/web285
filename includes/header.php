@@ -6,8 +6,8 @@
 
   <title>Recipe Share</title>
 
-  <link rel="stylesheet" href="css/styles.css">
-  <script src="js/scripts.js" defer></script>
+  <link rel="stylesheet" href="css/app.css">
+  <script type="module" src="js/app.js"></script>
 </head>
 
 <body>

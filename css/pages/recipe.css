@@ -1,0 +1,134 @@
+/* =========================
+   Recipe page (recipe.php)
+========================= */
+
+.recipe-page {
+  display: grid;
+  gap: 1rem;
+}
+
+.recipe-header {
+  margin-bottom: 0.25rem;
+}
+
+.recipe-title {
+  margin: 0 0 0.25rem;
+}
+
+.recipe-meta {
+  margin: 0;
+  opacity: 0.9;
+}
+
+.recipe-status {
+  margin: 0.5rem 0 0;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid rgba(0,0,0,0.15);
+  border-radius: 12px;
+  background: rgba(255,255,255,0.75);
+}
+
+.recipe-layout {
+  display: grid;
+  gap: 1rem;
+}
+
+.recipe-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255,255,255,0.75);
+  padding: 1rem;
+}
+
+.recipe-card h2 {
+  margin: 0 0 0.75rem;
+}
+
+/* Two-column layout on wider screens */
+@media (min-width: 900px) {
+  .recipe-layout {
+    grid-template-columns: 1.2fr 0.8fr;
+    align-items: start;
+  }
+}
+
+/* Gallery */
+.recipe-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 0.75rem;
+}
+
+.recipe-photo {
+  margin: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid var(--border);
+}
+
+.recipe-photo img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+}
+
+.recipe-photo figcaption {
+  padding: 0.5rem 0.65rem;
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+/* Ingredients */
+.ingredients-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.ingredient-item {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.6rem 0.7rem;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.80);
+  border: 1px solid rgba(0,0,0,0.08);
+}
+
+@media (min-width: 700px) {
+  .ingredient-item {
+    grid-template-columns: 140px 1fr auto;
+    align-items: baseline;
+  }
+}
+
+.ingredient-qty {
+  font-weight: 800;
+}
+
+.ingredient-note {
+  opacity: 0.85;
+  font-size: 0.95rem;
+}
+
+/* Steps */
+.steps-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.step-item {
+  padding: 0.6rem 0.7rem;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.80);
+  border: 1px solid rgba(0,0,0,0.08);
+}
+
+/* Back link */
+.recipe-back {
+  margin: 0.25rem 0 0;
+}

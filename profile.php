@@ -3,58 +3,35 @@ require_once 'includes/initialize.php';
 
 /* Authentication */
 if (!isset($_SESSION['user_id'])) {
-  redirect_error('login_required', 'index.php');
+    redirect_error('login_required', 'index.php');
 }
 
 include 'includes/header.php';
 
 /* Role / permissions */
-$role_id   = (int) ($_SESSION['role_id'] ?? 2); // 1=admin, 2=member
-$is_admin  = ($role_id === 1);
+$role_id  = (int) ($_SESSION['role_id'] ?? 2); // 1=admin, 2=member
+$is_admin = ($role_id === 1);
 
+/* Messages from handler */
 $admin_message = '';
+$admin_error   = '';
 
-/* Moderation actions (admin only) */
-if ($is_admin && $_SERVER['REQUEST_METHOD'] === 'POST') {
-
-  $action   = (string) ($_POST['action'] ?? '');
-  $recipe_id = (int) ($_POST['recipe_id'] ?? 0);
-
-  if ($recipe_id > 0 && ($action === 'approve' || $action === 'reject')) {
-
-    $new_status = ($action === 'approve') ? 'approved' : 'rejected';
-    $admin_id   = (int) ($_SESSION['user_id'] ?? 0);
-
-    $stmt = $db->prepare(
-      "UPDATE recipe_rec
-       SET status_rec = ?, reviewed_by_usr = ?, reviewed_at_rec = NOW()
-       WHERE id_rec = ? AND status_rec = 'pending'"
-    );
-
-    $stmt->bind_param('sii', $new_status, $admin_id, $recipe_id);
-    $stmt->execute();
-
-    if ($stmt->affected_rows > 0) {
-      $admin_message = ($action === 'approve')
-        ? 'Recipe approved.'
-        : 'Recipe rejected.';
-    } else {
-      $admin_message = 'No change made (maybe already reviewed).';
-    }
-
-    $stmt->close();
-  }
+if (!empty($_GET['msg'])) {
+    $admin_message = (string) $_GET['msg'];
+}
+if (!empty($_GET['err'])) {
+    $admin_error = (string) $_GET['err'];
 }
 
 /* My recipes (owner view): includes all statuses for this user */
 $my_recipes = [];
 
 $stmt = $db->prepare(
-  "SELECT id_rec, title_rec, status_rec, created_at_rec
-   FROM recipe_rec
-   WHERE id_usr_rec = ?
-   ORDER BY created_at_rec DESC
-   LIMIT 50"
+    "SELECT id_rec, title_rec, status_rec, created_at_rec
+     FROM recipe_rec
+     WHERE id_usr_rec = ?
+     ORDER BY created_at_rec DESC
+     LIMIT 50"
 );
 
 $uid = (int) $_SESSION['user_id'];
@@ -65,14 +42,15 @@ $stmt->execute();
 $result = $stmt->get_result();
 
 while ($row = $result->fetch_assoc()) {
-  $my_recipes[] = $row;
+    $my_recipes[] = $row;
 }
 
 $stmt->close();
 
 /* Admin data */
-$active  = [];
-$pending = [];
+$active   = [];
+$pending  = [];
+$approved = [];
 
 if ($is_admin) {
 
@@ -89,11 +67,29 @@ if ($is_admin) {
 
   $stmt->bind_param('i', $minutes);
   $stmt->execute();
-
   $result = $stmt->get_result();
 
   while ($row = $result->fetch_assoc()) {
     $active[] = $row;
+  }
+
+  $stmt->close();
+
+  /* Approved recipes */
+  $stmt = $db->prepare(
+    "SELECT r.id_rec, r.title_rec, r.created_at_rec, u.username_usr
+     FROM recipe_rec r
+     JOIN user_usr u ON u.id_usr = r.id_usr_rec
+     WHERE r.status_rec = 'approved'
+     ORDER BY r.created_at_rec DESC
+     LIMIT 50"
+  );
+
+  $stmt->execute();
+  $result = $stmt->get_result();
+
+  while ($row = $result->fetch_assoc()) {
+    $approved[] = $row;
   }
 
   $stmt->close();
@@ -109,7 +105,6 @@ if ($is_admin) {
   );
 
   $stmt->execute();
-
   $result = $stmt->get_result();
 
   while ($row = $result->fetch_assoc()) {
@@ -118,135 +113,205 @@ if ($is_admin) {
 
   $stmt->close();
 }
+/* Clear confirmation if cancelled */
+if ($is_admin && isset($_GET['confirm_cancel'])) {
+  unset($_SESSION['admin_confirm']);
+}
+
+/* Confirmation state for delete recipe */
+$confirm_type        = (string) ($_GET['confirm'] ?? '');
+$confirm             = $_SESSION['admin_confirm'] ?? null;
+$show_delete_confirm = false;
+
+if (
+    $is_admin
+    && $confirm_type === 'delete_recipe'
+    && is_array($confirm)
+    && ($confirm['type'] ?? '') === 'delete_recipe'
+    && (int) ($confirm['expires'] ?? 0) >= time()
+) {
+    $show_delete_confirm = true;
+}
 ?>
 
 <div id="container">
-  <main>
+    <main>
 
-    <h1>Your Profile</h1>
+        <h1>Your Profile</h1>
 
-    <p>
-      Welcome,
-      <strong><?= h($_SESSION['username']) ?></strong>.
-    </p>
+        <p>
+            Welcome,
+            <strong><?= h($_SESSION['username']) ?></strong>.
+        </p>
 
-    <nav class="tabs" aria-label="Profile sections">
-      <a class="tab" href="#recipes">My Recipes</a>
-      <a class="tab" href="#stats">My Stats</a>
+        <nav class="tabs" aria-label="Profile sections">
+            <a class="tab" href="#recipes">My Recipes</a>
+            <a class="tab" href="#stats">My Stats</a>
 
-      <?php if ($is_admin): ?>
-        <a class="tab" href="#admin-tools">Admin Tools</a>
-        <a class="tab tab-link" href="admin.php">Admin Panel →</a>
-      <?php endif; ?>
-    </nav>
+            <?php if ($is_admin): ?>
+                <a class="tab" href="#admin-tools">Admin Tools</a>
+                <a class="tab tab-link" href="admin.php">Admin Panel →</a>
+            <?php endif; ?>
+        </nav>
 
-    <section id="recipes" class="tab-panel">
-      <h2>My Recipes</h2>
+        <section id="recipes" class="tab-panel">
+            <h2>My Recipes</h2>
 
-      <?php if (empty($my_recipes)): ?>
-        <p>You haven’t submitted any recipes yet.</p>
+            <?php if (empty($my_recipes)): ?>
+                <p>You haven’t submitted any recipes yet.</p>
 
-      <?php else: ?>
-        <ul>
-          <?php foreach ($my_recipes as $r): ?>
-            <li>
+            <?php else: ?>
+                <ul>
+                    <?php foreach ($my_recipes as $r): ?>
+                        <li>
 
-              <a href="recipe.php?id=<?= (int) $r['id_rec'] ?>">
-                <?= h($r['title_rec']) ?>
-              </a>
+                            <a href="recipe.php?id=<?= (int) $r['id_rec'] ?>">
+                                <?= h($r['title_rec']) ?>
+                            </a>
 
-              <small>
-                — <?= h($r['status_rec']) ?>
+                            <small>
+                                — <?= h($r['status_rec']) ?>
 
-                <?php if (!empty($r['created_at_rec'])): ?>
-                  (<?= h($r['created_at_rec']) ?>)
+                                <?php if (!empty($r['created_at_rec'])): ?>
+                                    (<?= h($r['created_at_rec']) ?>)
+                                <?php endif; ?>
+                            </small>
+
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            <?php endif; ?>
+        </section>
+
+        <section id="stats" class="tab-panel">
+            <h2>My Stats</h2>
+            <p>Placeholder: stats like total recipes, favorites, last login, etc.</p>
+        </section>
+
+        <?php if ($is_admin): ?>
+            <section id="admin-tools" class="tab-panel">
+                <h2>Admin Tools</h2>
+
+                <?php if ($admin_error !== ''): ?>
+                    <p role="alert">
+                        <strong><?= h($admin_error) ?></strong>
+                    </p>
                 <?php endif; ?>
-              </small>
 
-            </li>
-          <?php endforeach; ?>
-        </ul>
-      <?php endif; ?>
-    </section>
+                <?php if ($admin_message !== ''): ?>
+                    <p role="status">
+                        <strong><?= h($admin_message) ?></strong>
+                    </p>
+                <?php endif; ?>
 
-    <section id="stats" class="tab-panel">
-      <h2>My Stats</h2>
-      <p>Placeholder: stats like total recipes, favorites, last login, etc.</p>
-    </section>
+                <?php if ($show_delete_confirm): ?>
+                    <div class="admin-confirm">
+                        <h3 class="admin-confirm-title">Confirm delete recipe</h3>
 
-    <?php if ($is_admin): ?>
-      <section id="admin-tools" class="tab-panel">
-        <h2>Admin Tools</h2>
+                        <p>
+                            You are about to permanently delete recipe ID
+                            <strong><?= (int) $confirm['recipe_id'] ?></strong>.
+                            This will remove its steps, ingredients, images, and uploaded files.
+                        </p>
 
-        <?php if ($admin_message !== ''): ?>
-          <p role="alert">
-            <strong><?= h($admin_message) ?></strong>
-          </p>
+                        <form
+                            method="post"
+                            action="includes/admin-actions-handler.php"
+                            class="admin-confirm-form"
+                        >
+                            <input type="hidden" name="action" value="delete_recipe_confirm">
+                            <input type="hidden" name="recipe_id" value="<?= (int) $confirm['recipe_id'] ?>">
+                            <input type="hidden" name="confirm_token" value="<?= h((string) $confirm['token']) ?>">
+                            <button type="submit">Yes — delete</button>
+                        </form>
+
+                        <a href="profile.php?confirm_cancel=1#admin-tools">Cancel</a>
+                    </div>
+                <?php endif; ?>
+
+                <h3>Pending Recipes: <?= count($pending) ?></h3>
+
+                <?php if (empty($pending)): ?>
+                    <p>No recipes pending approval.</p>
+                <?php else: ?>
+                    <ul>
+                        <?php foreach ($pending as $r): ?>
+                            <li class="admin-recipe-row">
+
+                                <a href="recipe.php?id=<?= (int) $r['id_rec'] ?>">
+                                    <?= h($r['title_rec']) ?>
+                                </a>
+
+                                — by <?= h($r['username_usr']) ?>
+
+                                <form
+                                    method="post"
+                                    action="includes/admin-actions-handler.php"
+                                    class="admin-inline-form"
+                                >
+                                    <input type="hidden" name="recipe_id" value="<?= (int) $r['id_rec'] ?>">
+
+                                    <button type="submit" name="action" value="approve">Approve</button>
+                                    <button type="submit" name="action" value="reject">Reject</button>
+                                    <button type="submit" name="action" value="delete_recipe_request">Delete…</button>
+                                </form>
+
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                <?php endif; ?>
+                <hr>
+
+                <h3>Approved Recipes: <?= count($approved) ?></h3>
+
+                <?php if (empty($approved)): ?>
+                  <p>No approved recipes found.</p>
+                <?php else: ?>
+                  <ul>
+                    <?php foreach ($approved as $r): ?>
+                      <li class="admin-recipe-row">
+
+                        <a href="recipe.php?id=<?= (int) $r['id_rec'] ?>">
+                          <?= h($r['title_rec']) ?>
+                        </a>
+
+                        — by <?= h($r['username_usr']) ?>
+
+                        <form
+                          method="post"
+                          action="includes/admin-actions-handler.php"
+                          class="admin-inline-form"
+                        >
+                          <input type="hidden" name="recipe_id" value="<?= (int) $r['id_rec'] ?>">
+                          <button type="submit" name="action" value="delete_recipe_request">Delete…</button>
+                        </form>
+
+                      </li>
+                    <?php endforeach; ?>
+                  </ul>
+                <?php endif; ?>
+
+                <hr>
+
+                <h3>Active users (last 15 min): <?= count($active) ?></h3>
+
+                <?php if (empty($active)): ?>
+                    <p>No active users right now.</p>
+                <?php else: ?>
+                    <ul>
+                        <?php foreach ($active as $row): ?>
+                            <li>
+                                <?= h($row['username_usr']) ?>
+                                (last seen: <?= h($row['last_seen_act']) ?>)
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                <?php endif; ?>
+
+            </section>
         <?php endif; ?>
 
-        <h3>Pending Recipes: <?= count($pending) ?></h3>
-
-        <?php if (empty($pending)): ?>
-          <p>No recipes pending approval.</p>
-
-        <?php else: ?>
-          <ul>
-            <?php foreach ($pending as $r): ?>
-              <li style="margin-bottom: 0.75rem;">
-
-                <a href="recipe.php?id=<?= (int) $r['id_rec'] ?>">
-                  <?= h($r['title_rec']) ?>
-                </a>
-
-                — by <?= h($r['username_usr']) ?>
-
-                <form
-                  method="post"
-                  action="profile.php#admin-tools"
-                  style="display:inline-block; margin-left: 0.5rem;"
-                >
-                  <input
-                    type="hidden"
-                    name="recipe_id"
-                    value="<?= (int) $r['id_rec'] ?>"
-                  >
-
-                  <button type="submit" name="action" value="approve">
-                    Approve
-                  </button>
-
-                  <button type="submit" name="action" value="reject">
-                    Reject
-                  </button>
-                </form>
-
-              </li>
-            <?php endforeach; ?>
-          </ul>
-        <?php endif; ?>
-
-        <hr>
-
-        <h3>Active users (last 15 min): <?= count($active) ?></h3>
-
-        <?php if (empty($active)): ?>
-          <p>No active users right now.</p>
-
-        <?php else: ?>
-          <ul>
-            <?php foreach ($active as $row): ?>
-              <li>
-                <?= h($row['username_usr']) ?>
-                (last seen: <?= h($row['last_seen_act']) ?>)
-              </li>
-            <?php endforeach; ?>
-          </ul>
-        <?php endif; ?>
-
-      </section>
-    <?php endif; ?>
-
-  </main>
+    </main>
 </div>
 
 <?php include 'includes/login-modal.php'; ?>

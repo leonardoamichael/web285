@@ -14,6 +14,40 @@ $title     = '';
 $image_alt = '';
 $units     = [];
 
+/*Diet Array */
+$type_options  = [];
+$style_options = [];
+$diet_options  = [];
+
+$res = $db->query(
+  "SELECT id_cat, group_cat, name_cat
+   FROM category_cat
+   ORDER BY name_cat ASC"
+);
+
+if ($res) {
+  while ($row = $res->fetch_assoc()) {
+
+    $id    = (int) $row['id_cat'];
+    $group = $row['group_cat'];
+    $name  = $row['name_cat'];
+
+    if ($group === 'type') {
+      $type_options[$id] = $name;
+    }
+
+    if ($group === 'style') {
+      $style_options[$id] = $name;
+    }
+
+    if ($group === 'diet') {
+      $diet_options[$id] = $name;
+    }
+  }
+
+  $res->free();
+}
+
 /* Units dropdown data */
 $res = $db->query(
   "SELECT id_uni, name_uni, abbreviation_uni
@@ -84,12 +118,106 @@ include 'includes/header.php';
         value="<?= h($title ?? '') ?>"
       >
 
+      <label for="description">Description (max 250 characters)</label>
+
+      <textarea
+        id="description"
+        name="description"
+        maxlength="250"
+        rows="3"
+        placeholder="Short summary of the recipe..."
+      ><?= h($_POST['description'] ?? '') ?></textarea>
+
+      <p class="field-help">
+        <span id="descCount">0</span>/250
+      </p>
+<fieldset class="chip-set">
+  <legend>Diet</legend>
+
+  <?php foreach ($diet_options as $id => $label): ?>
+
+    <?php
+      $checked = in_array(
+        $id,
+        (array)($_POST['diet'] ?? []),
+        true
+      ) ? 'checked' : '';
+    ?>
+
+    <label class="chip">
+      <input
+        class="chip-input"
+        type="checkbox"
+        name="diet[]"
+        value="<?= $id ?>"
+        <?= $checked ?>
+      >
+      <span class="chip-text"><?= h($label) ?></span>
+    </label>
+
+  <?php endforeach; ?>
+</fieldset>
+
+<fieldset class="chip-set">
+  <legend>Type</legend>
+
+  <?php foreach ($type_options as $id => $label): ?>
+
+    <?php
+      $checked = in_array(
+        $id,
+        (array)($_POST['type'] ?? []),
+        true
+      ) ? 'checked' : '';
+    ?>
+
+    <label class="chip">
+      <input
+        class="chip-input"
+        type="checkbox"
+        name="type[]"
+        value="<?= $id ?>"
+        <?= $checked ?>
+      >
+      <span class="chip-text"><?= h($label) ?></span>
+    </label>
+
+  <?php endforeach; ?>
+</fieldset>
+
+<fieldset class="chip-set">
+  <legend>Style</legend>
+
+  <?php foreach ($style_options as $id => $label): ?>
+
+    <?php
+      $checked = in_array(
+        $id,
+        (array)($_POST['style'] ?? []),
+        true
+      ) ? 'checked' : '';
+    ?>
+
+    <label class="chip">
+      <input
+        class="chip-input"
+        type="checkbox"
+        name="style[]"
+        value="<?= $id ?>"
+        <?= $checked ?>
+      >
+      <span class="chip-text"><?= h($label) ?></span>
+    </label>
+
+  <?php endforeach; ?>
+</fieldset>
+
       <h2>Ingredients</h2>
-      <p>Enter up to 6 ingredients (leave unused rows blank).</p>
+      <p>Add as many ingredients as needed. Use “Add ingredient”.</p>
 
       <button type="button" id="addIngredientBtn">+ Add ingredient</button>
 
-      <?php for ($i = 0; $i < 6; $i++): ?>
+      <?php for ($i = 0; $i < 12; $i++): ?>
         <?php
           /*
            * If the user submitted the form and had values in a row,
@@ -111,6 +239,8 @@ include 'includes/header.php';
           // JS will reveal the first 2 rows on a fresh load.
           $hidden_class = $row_has_value ? '' : 'is-hidden';
         ?>
+
+
 
         <fieldset class="ingredient-row <?= $hidden_class ?>">
           <legend>Ingredient <?= $i + 1 ?></legend>
@@ -171,11 +301,11 @@ include 'includes/header.php';
       <?php endfor; ?>
 
       <h2>Directions</h2>
-      <p>Enter up to 8 steps (leave unused steps blank).</p>
+      <p>Add as many steps as needed. Use “Add step”.</p>
 
       <button type="button" id="addStepBtn">+ Add step</button>
 
-      <?php for ($i = 0; $i < 8; $i++): ?>
+      <?php for ($i = 0; $i < 12; $i++): ?>
         <?php
           $step_val = $_POST['step'][$i] ?? '';
 

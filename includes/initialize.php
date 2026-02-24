@@ -16,7 +16,7 @@ require_once 'recipe-functions.php';
 $db = db_connect();
 
 if (!$db) {
-  die("Database connection failed.");
+  internal_error("Database connection failed.");
 }
 
 /**

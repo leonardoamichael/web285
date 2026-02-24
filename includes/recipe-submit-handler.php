@@ -35,6 +35,14 @@ function handle_recipe_submit(mysqli $db): array
     $errors['title'] = 'Title is required (max 120 characters).';
   }
 
+  $type_id  = (int) ($_POST['type'] ?? 0);
+  $style_id = (int) ($_POST['style'] ?? 0);
+
+  $diet_ids = $_POST['diet'] ?? [];
+  if (!is_array($diet_ids)) {
+    $diet_ids = [];
+  }
+
   $steps = $_POST['step'] ?? [];
   $has_step = false;
 
@@ -87,6 +95,40 @@ function handle_recipe_submit(mysqli $db): array
     $recipe_id = (int) $stmt->insert_id;
 
     $stmt->close();
+
+    $stmt_cat = $db->prepare(
+      "INSERT INTO recipe_category_reccat (id_rec_reccat, id_cat_reccat)
+      VALUES (?, ?)"
+    );
+
+    if (!$stmt_cat) {
+      throw new Exception("Prepare failed: " . $db->error);
+    }
+
+    $cat_ids = [];
+
+    if ($type_id > 0) {
+      $cat_ids[] = $type_id;
+    }
+
+    if ($style_id > 0) {
+      $cat_ids[] = $style_id;
+    }
+
+    foreach ($diet_ids as $d) {
+      $d = (int) $d;
+      if ($d > 0) {
+        $cat_ids[] = $d;
+      }
+    }
+    $cat_ids = array_values(array_unique($cat_ids));
+
+    foreach ($cat_ids as $cat_id) {
+      $stmt_cat->bind_param('ii', $recipe_id, $cat_id);
+      $stmt_cat->execute();
+    }
+
+    $stmt_cat->close();
 
     // 2) Insert steps
     $stmt = $db->prepare(

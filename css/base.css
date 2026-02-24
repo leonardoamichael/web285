@@ -1,0 +1,81 @@
+@import url("https://fonts.googleapis.com/css2?family=Akaya+Kanadaka&family=Lato:wght@400;600;700&family=Tangerine:wght@700&display=swap");
+
+/* =========================
+   Reset / Global
+========================= */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+:root {
+  /* Fonts */
+  --font-body: "Lato", sans-serif;
+  --font-accent: "Tangerine", cursive;
+
+  /* Core surfaces */
+  --page-bg: #efe7df;     /* warm paper */
+  --surface: #fffaf5;     /* cream */
+  --text: #2b2b2b;
+
+  /* Accent palette */
+  --accent: #c2412d;      /* tomato */
+  --accent-2: #2f6b4f;    /* herb */
+  --link: #1f5f8b;
+
+  /* UI neutrals */
+  --border: rgba(0, 0, 0, 0.12);
+  --muted: rgba(0, 0, 0, 0.7);
+  --hover: rgba(0, 0, 0, 0.06);
+
+  /* Shadows / radius */
+  --radius: 12px;
+  --radius-sm: 10px;
+  --container-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  --main-shadow: 0 14px 28px rgba(0, 0, 0, 0.10);
+}
+
+html {
+  font: 17px/1.5 var(--font-body);
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--page-bg);
+  color: var(--text);
+  margin: 0;
+}
+
+img {
+  display: block;
+  height: auto;
+  max-width: 100%;
+}
+
+/* =========================
+   Base Elements
+========================= */
+
+a {
+  color: var(--link);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+header {
+  text-align: center;
+}
+
+h1 {
+  letter-spacing: -0.02em;
+}
+
+header h1,
+.site-title {
+  font-family: var(--font-accent);
+}

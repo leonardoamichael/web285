@@ -19,9 +19,9 @@ function username_or_email_exists(mysqli $db, string $username, string $email): 
           LIMIT 1";
 
   $stmt = $db->prepare($sql);
-  if (!$stmt) {
-    die("Prepare failed: " . $db->error);
-  }
+    if (!$stmt) {
+      internal_error("Prepare failed: " . $db->error);
+    }
 
   $stmt->bind_param('ss', $username, $email);
   $stmt->execute();
@@ -59,7 +59,7 @@ function create_user(mysqli $db, string $username, string $email, string $passwo
 
   $stmt = $db->prepare($sql);
   if (!$stmt) {
-    die("Prepare failed: " . $db->error);
+    internal_error("Prepare failed: " . $db->error);
   }
 
   $stmt->bind_param('sssii', $username, $email, $hash, $role_id, $level_id);

@@ -49,10 +49,31 @@ if (!empty($recipes) && is_array($recipes)) {
 <?php if (!empty($visible_recipes)): ?>
 
   <?php foreach ($visible_recipes as $recipe): ?>
-    <div class="tile">
+    <div
+      class="tile recipe-tile"
+      data-title="<?= h($recipe['title_rec'] ?? '') ?>"
+      data-created="<?= h($recipe['created_at_rec'] ?? '') ?>"
+      data-rating="<?= h($recipe['avg_rating'] ?? 0) ?>"
+      data-type="<?= h($recipe['type_cat'] ?? '') ?>"
+      data-style="<?= h($recipe['style_cat'] ?? '') ?>"
+      data-diet="<?= h($recipe['diet_cats_csv'] ?? '') ?>"
+    >
 
-      <a href="recipe.php?id=<?= (int) $recipe['id_rec'] ?>">
-        <?= h($recipe['title_rec']) ?>
+
+      <a class="recipe-tile-link" href="recipe.php?id=<?= (int) $recipe['id_rec'] ?>">
+
+        <div class="recipe-tile-image">
+          <img
+            src="<?= h($recipe['primary_image'] ?? 'images/recipe-book.png') ?>"
+            alt="<?= h($recipe['title_rec']) ?>"
+            loading="lazy"
+          >
+        </div>
+
+        <div class="recipe-tile-title">
+          <?= h($recipe['title_rec']) ?>
+        </div>
+
       </a>
 
       <?php if (isset($recipe['status_rec']) && (string) $recipe['status_rec'] !== 'approved'): ?>
@@ -60,7 +81,6 @@ if (!empty($recipes) && is_array($recipes)) {
           <small>Status: <?= h($recipe['status_rec']) ?></small>
         </div>
       <?php endif; ?>
-
     </div>
   <?php endforeach; ?>
 

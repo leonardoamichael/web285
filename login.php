@@ -16,13 +16,6 @@ if ($username_or_email === '' || $password === '') {
   redirect_error('login_required', 'index.php');
 }
 
-/*
- * NOTE:
- * initialize.php already created:
- * $db = db_connect();
- * Do NOT reconnect here.
- */
-
 /* User lookup */
 $sql = "SELECT id_usr, username_usr, password_hash_usr, id_rol_usr
         FROM user_usr
@@ -32,7 +25,7 @@ $sql = "SELECT id_usr, username_usr, password_hash_usr, id_rol_usr
 $stmt = $db->prepare($sql);
 
 if (!$stmt) {
-  die("Prepare failed: " . $db->error);
+  internal_error("Prepare failed: " . $db->error);
 }
 
 $stmt->bind_param('ss', $username_or_email, $username_or_email);

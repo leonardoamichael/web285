@@ -1,54 +1,8 @@
 <?php
 require_once 'includes/initialize.php';
 
-$recipes = [];
-$search  = trim((string) ($_GET['search'] ?? ''));
-
-/* Recipe list query (approved only) */
-if ($search !== '') {
-
-  $like = '%' . $search . '%';
-
-  $stmt = $db->prepare(
-    "SELECT id_rec, title_rec
-     FROM recipe_rec
-     WHERE status_rec = 'approved'
-       AND title_rec LIKE ?
-     ORDER BY created_at_rec DESC
-     LIMIT 30"
-  );
-
-  $stmt->bind_param('s', $like);
-  $stmt->execute();
-
-  $result = $stmt->get_result();
-
-  while ($row = $result->fetch_assoc()) {
-    $recipes[] = $row;
-  }
-
-  $stmt->close();
-
-} else {
-
-  $stmt = $db->prepare(
-    "SELECT id_rec, title_rec
-     FROM recipe_rec
-     WHERE status_rec = 'approved'
-     ORDER BY created_at_rec DESC
-     LIMIT 30"
-  );
-
-  $stmt->execute();
-
-  $result = $stmt->get_result();
-
-  while ($row = $result->fetch_assoc()) {
-    $recipes[] = $row;
-  }
-
-  $stmt->close();
-}
+$search = trim((string)($_GET['search'] ?? ''));
+$recipes = fetch_approved_recipes_with_primary_image($db, $search, 30);
 
 include 'includes/header.php';
 ?>
@@ -77,6 +31,32 @@ include 'includes/header.php';
 
       <button type="submit">Search</button>
     </form>
+
+    <section class="recipe-controls" id="recipeControls" aria-label="Search, filter, and sort recipes">
+
+      <fieldset class="chip-set filter-chipset" id="typeChips">
+        <legend>Type</legend>
+      </fieldset>
+
+      <fieldset class="chip-set filter-chipset" id="styleChips">
+        <legend>Style</legend>
+      </fieldset>
+
+      <fieldset class="chip-set filter-chipset" id="dietChips">
+        <legend>Diet</legend>
+      </fieldset>
+
+      <div class="filter-row">
+        <label for="sortBy">Sort</label>
+        <select id="sortBy">
+          <option value="newest">Newest</option>
+          <option value="rating">Highest rating</option>
+        </select>
+      </div>
+
+      <button type="button" id="clearFilters">Clear filters</button>
+
+    </section>
 
     <?php include 'includes/recipe-grid.php'; ?>
 
