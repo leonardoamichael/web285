@@ -2,3 +2,6 @@ includes/db-credentials.php
 recipe.sql
 updateddb.sql
 uploads/recipes
+usability-results.txt
+usability-submit.php
+usability.php

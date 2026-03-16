@@ -32,18 +32,60 @@ include 'includes/header.php';
       <button type="submit">Search</button>
     </form>
 
-    <section class="recipe-controls" id="recipeControls" aria-label="Search, filter, and sort recipes">
+      <button type="button" id="toggleFilters" class="filter-toggle">
+        Show Filters
+      </button>
 
-      <fieldset class="chip-set filter-chipset" id="typeChips">
+      <section
+        class="recipe-controls"
+        id="recipeControls"
+        aria-label="Search, filter, and sort recipes"
+        hidden
+      >
+
+      <fieldset class="chip-set filter-chipset filter-group" id="typeChips">
         <legend>Type</legend>
+
+        <input
+          class="filter-group-search"
+          type="search"
+          placeholder="Search types"
+          aria-label="Search types"
+        >
+
+        <div class="filter-group-body"></div>
+
+        <button type="button" class="filter-group-toggle">Show All</button>
       </fieldset>
 
-      <fieldset class="chip-set filter-chipset" id="styleChips">
+      <fieldset class="chip-set filter-chipset filter-group" id="styleChips">
         <legend>Style</legend>
+
+        <input
+          class="filter-group-search"
+          type="search"
+          placeholder="Search styles"
+          aria-label="Search styles"
+        >
+
+        <div class="filter-group-body"></div>
+
+        <button type="button" class="filter-group-toggle">Show All</button>
       </fieldset>
 
-      <fieldset class="chip-set filter-chipset" id="dietChips">
+      <fieldset class="chip-set filter-chipset filter-group" id="dietChips">
         <legend>Diet</legend>
+
+        <input
+          class="filter-group-search"
+          type="search"
+          placeholder="Search diets"
+          aria-label="Search diets"
+        >
+
+        <div class="filter-group-body"></div>
+
+        <button type="button" class="filter-group-toggle">Show All</button>
       </fieldset>
 
       <div class="filter-row">

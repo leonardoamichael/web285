@@ -16,7 +16,16 @@ $is_admin   = ($role_id === 1);
 
 /* 1) Fetch recipe + author + status */
 $stmt = $db->prepare(
-  "SELECT r.id_rec, r.title_rec, r.created_at_rec, r.status_rec, r.id_usr_rec, u.username_usr
+  "SELECT r.id_rec,
+          r.title_rec,
+          r.description_rec,
+          r.created_at_rec,
+          r.status_rec,
+          r.id_usr_rec,
+          r.prep_minutes_rec,
+          r.cook_minutes_rec,
+          r.youtube_url_rec,
+          u.username_usr
    FROM recipe_rec r
    JOIN user_usr u ON u.id_usr = r.id_usr_rec
    WHERE r.id_rec = ?
@@ -149,8 +158,59 @@ while ($row = $result->fetch_assoc()) {
 
 $stmt->close();
 
+/* 6) Fetch rating data */
+$rating_summary = fetch_recipe_rating_summary($db, $id);
+$avg_rating     = $rating_summary['avg_rating'];
+$rating_count   = $rating_summary['rating_count'];
+
+$user_rating = fetch_user_recipe_rating($db, $id, $viewer_id);
+
 /* Fallback image */
 $default_image = 'images/recipe-book.png';
+
+function youtube_embed_url(?string $url): string
+{
+  $url = trim((string)$url);
+  if ($url === '') {
+    return '';
+  }
+
+  $parts = parse_url($url);
+  if (!$parts || empty($parts['host'])) {
+    return '';
+  }
+
+  $host = strtolower($parts['host']);
+  $path = (string)($parts['path'] ?? '');
+  $query = (string)($parts['query'] ?? '');
+
+  $id = '';
+
+  // youtu.be/<id>
+  if (str_contains($host, 'youtu.be')) {
+    $id = ltrim($path, '/');
+  }
+
+  // youtube.com/watch?v=<id>
+  if ($id === '' && (str_contains($host, 'youtube.com') || str_contains($host, 'youtube-nocookie.com'))) {
+    parse_str($query, $qs);
+    if (!empty($qs['v'])) {
+      $id = (string)$qs['v'];
+    }
+
+    // /embed/<id> or /shorts/<id>
+    if ($id === '') {
+      if (preg_match('~/(embed|shorts)/([^/?#]+)~', $path, $m)) {
+        $id = (string)$m[2];
+      }
+    }
+  }
+
+  // sanitize id to safe chars
+  $id = preg_replace('~[^A-Za-z0-9_-]~', '', (string)$id);
+
+  return ($id !== '') ? "https://www.youtube-nocookie.com/embed/{$id}" : '';
+}
 ?>
 
 <div id="container">
@@ -158,7 +218,31 @@ $default_image = 'images/recipe-book.png';
 
     <header class="recipe-header">
       <h1 class="recipe-title"><?= h($recipe['title_rec']) ?></h1>
+      <?php
+      $can_edit = $is_admin || ($is_owner && $recipe['status_rec'] === 'pending');
+      ?>
 
+      <?php if ($can_edit): ?>
+        <div class="recipe-edit-note">
+
+          <p>
+            <a href="edit-recipe.php?id=<?= (int)$id ?>">Edit Recipe</a>
+          </p>
+
+          <?php if (!$is_admin): ?>
+            <p class="recipe-edit-help">
+              You can edit this recipe while it is pending review. Once approved, editing is disabled.
+            </p>
+          <?php endif; ?>
+
+        </div>
+      <?php endif; ?>
+
+      <?php if (!empty($recipe['description_rec'])): ?>
+        <p class="recipe-description">
+          <?= h($recipe['description_rec']) ?>
+        </p>
+      <?php endif; ?>
       <?php if (!$is_approved): ?>
         <p class="recipe-status" role="alert">
           <strong>Status:</strong>
@@ -179,6 +263,121 @@ $default_image = 'images/recipe-book.png';
           • <span id="createDate"><?= h($recipe['created_at_rec']) ?></span>
         <?php endif; ?>
       </p>
+
+      <?php if ($rating_count > 0): ?>
+        <?php
+          $display_rating = round($avg_rating * 2) / 2;
+          $star_percent = ($display_rating / 5) * 100;
+          $is_perfect_rating = ($avg_rating >= 4.95);
+        ?>
+        <div class="recipe-meta recipe-rating recipe-rating-summary">
+          <strong>Rating:</strong>
+
+          <span class="rating-stars<?= $is_perfect_rating ? ' rating-stars--perfect' : '' ?>" aria-hidden="true">
+            <span class="rating-stars-base">★★★★★</span>
+            <span class="rating-stars-fill" style="width: <?= h((string)$star_percent) ?>%;">★★★★★</span>
+          </span>
+
+          <span class="rating-text">
+            <?= h(number_format($avg_rating, 1)) ?> / 5
+            (<?= (int) $rating_count ?> <?= $rating_count === 1 ? 'rating' : 'ratings' ?>)
+
+            <?php if ($is_perfect_rating): ?>
+              <span class="rating-badge" title="Near-perfect rating">⭐</span>
+            <?php endif; ?>
+          </span>
+        </div>
+      <?php else: ?>
+        <p class="recipe-meta recipe-rating">
+          <strong>Rating:</strong> No ratings yet
+        </p>
+      <?php endif; ?>
+
+      <?php
+      $prep = isset($recipe['prep_minutes_rec']) ? (int)$recipe['prep_minutes_rec'] : 0;
+      $cook = isset($recipe['cook_minutes_rec']) ? (int)$recipe['cook_minutes_rec'] : 0;
+
+      $has_prep = !empty($recipe['prep_minutes_rec']);
+      $has_cook = !empty($recipe['cook_minutes_rec']);
+
+      function format_minutes_to_hr_min(int $total): string
+      {
+        $h = intdiv($total, 60);
+        $m = $total % 60;
+
+        if ($h > 0 && $m > 0) {
+          return $h . ' hr ' . $m . ' min';
+        }
+        if ($h > 0) {
+          return $h . ' hr';
+        }
+        return $m . ' min';
+      }
+      ?>
+
+      <?php if ($has_prep || $has_cook): ?>
+        <p class="recipe-meta">
+          <?php if ($has_prep): ?>
+            <strong>Prep:</strong> <?= h(format_minutes_to_hr_min($prep)) ?>
+          <?php endif; ?>
+
+          <?php if ($has_prep && $has_cook): ?>
+            •
+          <?php endif; ?>
+
+          <?php if ($has_cook): ?>
+            <strong>Cook:</strong> <?= h(format_minutes_to_hr_min($cook)) ?>
+          <?php endif; ?>
+
+          <?php
+          $total = 0;
+          $has_total = false;
+
+          if ($has_prep) {
+            $total += $prep;
+            $has_total = true;
+          }
+          if ($has_cook) {
+            $total += $cook;
+            $has_total = true;
+          }
+          ?>
+
+          <?php if ($has_total && ($has_prep && $has_cook)): ?>
+            • <strong>Total:</strong> <?= h(format_minutes_to_hr_min($total)) ?>
+          <?php endif; ?>
+        </p>
+      <?php endif; ?>
+      
+      <?php if ($viewer_id > 0): ?>
+        <form class="recipe-rating-form" method="post" action="rate-recipe.php">
+
+          <input type="hidden" name="recipe_id" value="<?= (int)$id ?>">
+
+          <span class="recipe-rating-label"><strong>Your rating:</strong></span>
+
+      <div class="star-rating-input">
+
+      <?php for ($i = 5; $i >= 1; $i--): ?>
+        <input
+          type="radio"
+          id="star<?= $i ?>"
+          name="rating"
+          value="<?= $i ?>"
+          <?= ($user_rating === $i) ? 'checked' : '' ?>
+        >
+
+        <label for="star<?= $i ?>" title="<?= $i ?> star<?= $i > 1 ? 's' : '' ?>">★</label>
+      <?php endfor; ?>
+
+      </div>
+
+          <button type="submit">
+            <?= $user_rating ? 'Update Rating' : 'Submit Rating' ?>
+          </button>
+
+        </form>
+      <?php endif; ?>
     </header>
 
     <?php
@@ -256,6 +455,27 @@ $default_image = 'images/recipe-book.png';
           </div>
         <?php endif; ?>
       </section>
+      
+      <?php
+      $embed = youtube_embed_url($recipe['youtube_url_rec'] ?? '');
+      ?>
+
+      <?php if ($embed !== ''): ?>
+      <section class="recipe-card recipe-video">
+        <h2>Video</h2>
+
+        <div class="video-embed">
+          <iframe
+            src="<?= h($embed) ?>"
+            title="YouTube video"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen
+            loading="lazy"
+            referrerpolicy="strict-origin-when-cross-origin"
+          ></iframe>
+        </div>
+      </section>
+      <?php endif; ?>
 
       <section class="recipe-card recipe-ingredients">
         <h2>Ingredients</h2>

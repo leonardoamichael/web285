@@ -4,7 +4,10 @@
 @import url("components.css");
 
 /* Page-specific */
+@import url("pages/index.css");
 @import url("pages/recipes.css");
 @import url("pages/recipe.css");
 @import url("pages/admin.css");
 @import url("pages/submit.css");
+@import url("pages/profile.css");
+@import url("pages/about.css");

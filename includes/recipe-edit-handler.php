@@ -1,43 +1,116 @@
 <?php
-// includes/recipe-submit-handler.php
+// includes/recipe-edit-handler.php
 
 /**
- * Handle the full recipe submission workflow.
+ * Handle the full recipe editing workflow.
  *
- * Validates required fields, inserts the recipe as "pending", and then
- * inserts related steps, ingredients, and optional image uploads.
- * Uses a database transaction to prevent partial inserts.
+ * Validates edit permissions and submitted fields, updates the main recipe,
+ * replaces related category / step / ingredient rows, and optionally adds
+ * new uploaded images.
+ *
+ * Existing images are preserved in this first version. New uploads are appended.
  *
  * Expected inputs (POST):
  * - title (string)
+ * - description (string, optional)
+ * - prep_hours / prep_minutes
+ * - cook_hours / cook_minutes
+ * - youtube_url (string, optional)
+ * - type[] / style[] / diet[] (category IDs)
  * - step[] (array of strings)
  * - qty[] / unit[] / ing[] / note[] (ingredient row arrays)
- * - image_alt (string, optional)
+ * - image_alt (string, optional, used only for new uploads)
  *
  * Expected uploads (FILES):
  * - images[name|tmp_name|error|size][] (multiple files)
  *
  * Return shape:
- * - ok (bool) submission status
+ * - ok (bool) update status
  * - errors (array) field/general errors keyed by name
- * - recipe_id (int) new recipe ID on success, 0 on failure
+ * - recipe_id (int) edited recipe ID on success, 0 on failure
  *
  * @param mysqli $db Active database connection
- * @return array Submission result array with ok/errors/recipe_id
+ * @param int $recipe_id Recipe ID being edited
+ * @return array Edit result array with ok/errors/recipe_id
  */
-function handle_recipe_submit(mysqli $db): array
+function handle_recipe_edit(mysqli $db, int $recipe_id): array
 {
   $errors = [];
-  $recipe_id = 0;
 
+  if ($recipe_id <= 0) {
+    return [
+      'ok' => false,
+      'errors' => ['general' => 'Invalid recipe.'],
+      'recipe_id' => 0,
+    ];
+  }
+
+  /* Viewer context */
+  $viewer_id = (int) ($_SESSION['user_id'] ?? 0);
+  $role_id   = (int) ($_SESSION['role_id'] ?? 2); // 1=admin, 2=member
+  $is_admin  = ($role_id === 1);
+
+  if ($viewer_id <= 0) {
+    return [
+      'ok' => false,
+      'errors' => ['general' => 'You must be logged in.'],
+      'recipe_id' => 0,
+    ];
+  }
+
+  /* Fetch recipe for permission + status preservation */
+  $stmt = $db->prepare(
+    "SELECT id_rec, id_usr_rec, status_rec
+     FROM recipe_rec
+     WHERE id_rec = ?
+     LIMIT 1"
+  );
+
+  if (!$stmt) {
+    return [
+      'ok' => false,
+      'errors' => ['general' => 'Unable to load recipe.'],
+      'recipe_id' => 0,
+    ];
+  }
+
+  $stmt->bind_param('i', $recipe_id);
+  $stmt->execute();
+
+  $recipe = $stmt->get_result()->fetch_assoc();
+  $stmt->close();
+
+  if (!$recipe) {
+    return [
+      'ok' => false,
+      'errors' => ['general' => 'Recipe not found.'],
+      'recipe_id' => 0,
+    ];
+  }
+
+  $is_owner   = ((int) $recipe['id_usr_rec'] === $viewer_id);
+  $is_pending = ((string) $recipe['status_rec'] === 'pending');
+  $can_edit   = ($is_admin || ($is_owner && $is_pending));
+
+  if (!$can_edit) {
+    return [
+      'ok' => false,
+      'errors' => ['general' => 'You do not have permission to edit this recipe.'],
+      'recipe_id' => 0,
+    ];
+  }
+
+  /* Validation */
   $title = trim((string) ($_POST['title'] ?? ''));
   if ($title === '' || mb_strlen($title) > 120) {
     $errors['title'] = 'Title is required (max 120 characters).';
   }
+
   $description = trim((string) ($_POST['description'] ?? ''));
   if (mb_strlen($description) > 250) {
     $errors['description'] = 'Description must be 250 characters or less.';
   }
+
   $type_ids  = $_POST['type']  ?? [];
   $style_ids = $_POST['style'] ?? [];
   $diet_ids  = $_POST['diet']  ?? [];
@@ -68,12 +141,7 @@ function handle_recipe_submit(mysqli $db): array
     $errors['steps'] = 'Please enter at least one step.';
   }
 
-  $uid = (int) ($_SESSION['user_id'] ?? 0);
-  if ($uid <= 0) {
-    $errors['general'] = 'You must be logged in.';
-  }
-
-  $youtube_url = trim((string)($_POST['youtube_url'] ?? ''));
+  $youtube_url = trim((string) ($_POST['youtube_url'] ?? ''));
 
   if ($youtube_url !== '') {
     if (mb_strlen($youtube_url) > 255) {
@@ -82,14 +150,13 @@ function handle_recipe_submit(mysqli $db): array
       $errors['youtube_url'] = 'Please enter a valid URL.';
     }
   }
-  
 
-  // --- Time fields ---
-  $prep_hours = (int)($_POST['prep_hours'] ?? 0);
-  $prep_mins  = (int)($_POST['prep_minutes'] ?? 0);
+  /* Time fields */
+  $prep_hours = (int) ($_POST['prep_hours'] ?? 0);
+  $prep_mins  = (int) ($_POST['prep_minutes'] ?? 0);
 
-  $cook_hours = (int)($_POST['cook_hours'] ?? 0);
-  $cook_mins  = (int)($_POST['cook_minutes'] ?? 0);
+  $cook_hours = (int) ($_POST['cook_hours'] ?? 0);
+  $cook_mins  = (int) ($_POST['cook_minutes'] ?? 0);
 
   if ($prep_hours < 0 || $prep_hours > 24 || $prep_mins < 0 || $prep_mins > 59) {
     $errors['prep_time'] = 'Invalid prep time.';
@@ -113,82 +180,94 @@ function handle_recipe_submit(mysqli $db): array
     return [
       'ok' => false,
       'errors' => $errors,
-      'recipe_id' => 0
+      'recipe_id' => 0,
     ];
   }
 
-  // Transaction so we don't end up with partial inserts
   $db->begin_transaction();
 
   try {
-
-    // 1) Insert recipe as PENDING
-    $status = 'pending';
-
+    /* 1) Update main recipe record, preserving current status */
     $stmt = $db->prepare(
-      "INSERT INTO recipe_rec
-      (id_usr_rec, title_rec, description_rec, status_rec, prep_minutes_rec, cook_minutes_rec, youtube_url_rec)
-      VALUES (?, ?, ?, ?, ?, ?, ?)"
+      "UPDATE recipe_rec
+       SET title_rec = ?,
+           description_rec = ?,
+           prep_minutes_rec = ?,
+           cook_minutes_rec = ?,
+           youtube_url_rec = ?
+       WHERE id_rec = ?
+       LIMIT 1"
     );
 
     if (!$stmt) {
       throw new Exception("Prepare failed: " . $db->error);
     }
 
-      $desc_var = ($description !== '') ? $description : '';
-      $prep_var = $prep_minutes_total;
-      $cook_var = $cook_minutes_total;
-      $yt_var   = ($youtube_url !== '') ? $youtube_url : null;
+    $desc_var = ($description !== '') ? $description : '';
+    $prep_var = $prep_minutes_total;
+    $cook_var = $cook_minutes_total;
+    $yt_var   = ($youtube_url !== '') ? $youtube_url : null;
 
-      $stmt->bind_param(
-        'isssiis',
-        $uid,
-        $title,
-        $desc_var,
-        $status,
-        $prep_var,
-        $cook_var,
-        $yt_var
-      );
+    $stmt->bind_param(
+      'ssiisi',
+      $title,
+      $desc_var,
+      $prep_var,
+      $cook_var,
+      $yt_var,
+      $recipe_id
+    );
 
-      $stmt->execute();
-      $recipe_id = (int) $stmt->insert_id;
+    $stmt->execute();
+    $stmt->close();
 
-      $stmt->close();
+    /* 2) Replace categories */
+    $stmt = $db->prepare(
+      "DELETE FROM recipe_category_reccat
+       WHERE id_rec_reccat = ?"
+    );
+
+    if (!$stmt) {
+      throw new Exception("Prepare failed: " . $db->error);
+    }
+
+    $stmt->bind_param('i', $recipe_id);
+    $stmt->execute();
+    $stmt->close();
 
     $stmt_cat = $db->prepare(
       "INSERT INTO recipe_category_reccat (id_rec_reccat, id_cat_reccat)
-      VALUES (?, ?)"
+       VALUES (?, ?)"
     );
 
     if (!$stmt_cat) {
       throw new Exception("Prepare failed: " . $db->error);
     }
 
-  $cat_ids = [];
+    $cat_ids = [];
 
-  foreach ($type_ids as $t) {
-    $t = (int) $t;
-    if ($t > 0) {
-      $cat_ids[] = $t;
+    foreach ($type_ids as $t) {
+      $t = (int) $t;
+      if ($t > 0) {
+        $cat_ids[] = $t;
+      }
     }
-  }
 
-  foreach ($style_ids as $s) {
-    $s = (int) $s;
-    if ($s > 0) {
-      $cat_ids[] = $s;
+    foreach ($style_ids as $s) {
+      $s = (int) $s;
+      if ($s > 0) {
+        $cat_ids[] = $s;
+      }
     }
-  }
 
-  foreach ($diet_ids as $d) {
-    $d = (int) $d;
-    if ($d > 0) {
-      $cat_ids[] = $d;
+    foreach ($diet_ids as $d) {
+      $d = (int) $d;
+      if ($d > 0) {
+        $cat_ids[] = $d;
+      }
     }
-  }
 
-  $cat_ids = array_values(array_unique($cat_ids));
+    $cat_ids = array_values(array_unique($cat_ids));
 
     foreach ($cat_ids as $cat_id) {
       $stmt_cat->bind_param('ii', $recipe_id, $cat_id);
@@ -197,7 +276,20 @@ function handle_recipe_submit(mysqli $db): array
 
     $stmt_cat->close();
 
-    // 2) Insert steps
+    /* 3) Replace steps */
+    $stmt = $db->prepare(
+      "DELETE FROM recipe_step_stp
+       WHERE id_rec_stp = ?"
+    );
+
+    if (!$stmt) {
+      throw new Exception("Prepare failed: " . $db->error);
+    }
+
+    $stmt->bind_param('i', $recipe_id);
+    $stmt->execute();
+    $stmt->close();
+
     $stmt = $db->prepare(
       "INSERT INTO recipe_step_stp (id_rec_stp, step_number_stp, instruction_stp)
        VALUES (?, ?, ?)"
@@ -223,7 +315,20 @@ function handle_recipe_submit(mysqli $db): array
 
     $stmt->close();
 
-    // 3) Insert ingredients
+    /* 4) Replace ingredients */
+    $stmt = $db->prepare(
+      "DELETE FROM recipe_ingredient_recing
+       WHERE id_rec_recing = ?"
+    );
+
+    if (!$stmt) {
+      throw new Exception("Prepare failed: " . $db->error);
+    }
+
+    $stmt->bind_param('i', $recipe_id);
+    $stmt->execute();
+    $stmt->close();
+
     $qtys  = $_POST['qty']  ?? [];
     $units = $_POST['unit'] ?? [];
     $ings  = $_POST['ing']  ?? [];
@@ -297,7 +402,7 @@ function handle_recipe_submit(mysqli $db): array
         $ing_id = (int) $stmt_ins_ing->insert_id;
       }
 
-      $qty_var = $qty;
+      $qty_var  = $qty;
       $unit_var = $unit_id;
       $note_var = ($note === '') ? null : $note;
 
@@ -317,9 +422,8 @@ function handle_recipe_submit(mysqli $db): array
     $stmt_ins_ing->close();
     $stmt_ins_join->close();
 
-    // 4) Image uploads (stored, but recipe is not public until approved)
+    /* 5) Add any new uploaded images (existing ones remain) */
     if (!empty($_FILES['images']) && is_array($_FILES['images']['name'])) {
-
       $allowed = [
         'image/jpeg' => 'jpg',
         'image/png'  => 'png',
@@ -327,13 +431,31 @@ function handle_recipe_submit(mysqli $db): array
       ];
 
       $upload_dir = __DIR__ . '/../uploads/recipes/';
-      $web_dir = 'uploads/recipes/';
+      $web_dir    = 'uploads/recipes/';
 
       if (!is_dir($upload_dir)) {
         mkdir($upload_dir, 0755, true);
       }
 
       $alt = trim((string) ($_POST['image_alt'] ?? ''));
+
+      $sort = 1;
+      $stmt_sort = $db->prepare(
+        "SELECT COALESCE(MAX(sort_order_recimg), 0) AS max_sort
+         FROM recipe_image_recimg
+         WHERE id_rec_recimg = ?"
+      );
+
+      if (!$stmt_sort) {
+        throw new Exception("Prepare failed: " . $db->error);
+      }
+
+      $stmt_sort->bind_param('i', $recipe_id);
+      $stmt_sort->execute();
+      $sort_row = $stmt_sort->get_result()->fetch_assoc();
+      $stmt_sort->close();
+
+      $sort = ((int) ($sort_row['max_sort'] ?? 0)) + 1;
 
       $stmt_img = $db->prepare(
         "INSERT INTO recipe_image_recimg (id_rec_recimg, path_recimg, alt_recimg, sort_order_recimg)
@@ -344,7 +466,6 @@ function handle_recipe_submit(mysqli $db): array
         throw new Exception("Prepare failed: " . $db->error);
       }
 
-      $sort = 1;
       $count = count($_FILES['images']['name']);
 
       for ($i = 0; $i < $count; $i++) {
@@ -354,9 +475,8 @@ function handle_recipe_submit(mysqli $db): array
 
         $tmp = $_FILES['images']['tmp_name'][$i];
 
-        // More reliable MIME check than trusting extension
         $finfo = new finfo(FILEINFO_MIME_TYPE);
-        $type = $finfo->file($tmp);
+        $type  = $finfo->file($tmp);
 
         if (!isset($allowed[$type])) {
           continue;
@@ -389,20 +509,19 @@ function handle_recipe_submit(mysqli $db): array
     return [
       'ok' => true,
       'errors' => [],
-      'recipe_id' => $recipe_id
+      'recipe_id' => $recipe_id,
     ];
 
   } catch (Throwable $e) {
-
     $db->rollback();
 
-    $errors['general'] = 'Submission failed. Please try again.';
-    // For debugging locally you can temporarily echo $e->getMessage()
+    $errors['general'] = 'Update failed. Please try again.';
+    // For local debugging, temporarily inspect $e->getMessage()
 
     return [
       'ok' => false,
       'errors' => $errors,
-      'recipe_id' => 0
+      'recipe_id' => 0,
     ];
   }
 }

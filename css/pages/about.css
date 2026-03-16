@@ -1,0 +1,42 @@
+/* =========================
+   About Page
+========================= */
+
+.about-page {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.about-hero,
+.about-section {
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.06);
+  padding: 1rem;
+}
+
+.about-hero h1,
+.about-section h2 {
+  margin-top: 0;
+}
+
+.about-intro {
+  color: var(--muted);
+  font-size: 1.02rem;
+  margin-bottom: 0;
+  max-width: 62ch;
+}
+
+.about-section p:last-child {
+  margin-bottom: 0;
+}
+
+.about-list {
+  margin: 0.75rem 0 0;
+  padding-left: 1.2rem;
+}
+
+.about-list li + li {
+  margin-top: 0.4rem;
+}

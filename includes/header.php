@@ -12,46 +12,64 @@
 
 <body>
 
-<header>
-</header>
+<header class="site-header">
+  <div class="site-header-inner">
 
-<button id="menuToggle" aria-label="Toggle navigation">
-  ☰ Menu
-</button>
-
-<nav id="mainNav">
-  <ul>
-    <li><a href="index.php">Home</a></li>
-    <li><a href="recipes.php">Recipes</a></li>
-    <li><a href="submit.php">Submit Recipe</a></li>
-    <li><a href="about.php">About</a></li>
-  </ul>
-
-  <?php if (isset($_SESSION['user_id'])): ?>
-    <div class="nav-right">
-
-      <!-- Logged-in user → Profile -->
-      <a class="nav-user" href="profile.php">
-        <?= h($_SESSION['username']) ?>
-      </a>
-
-      <!-- Admin tools (role_id = 1) -->
-      <?php if ((int) ($_SESSION['role_id'] ?? 0) === 1): ?>
-        <a class="nav-admin" href="profile.php#admin-tools">
-          Admin Tools
-        </a>
-      <?php endif; ?>
-
-      <!-- Logout -->
-      <a class="nav-logout" href="logout.php">Logout</a>
+    <!-- Site Logo / Branding -->
+    <div class="site-branding">
+      <a href="index.php" class="site-logo">Recipe Share</a>
     </div>
 
-  <?php else: ?>
-
-    <!-- Guest navigation -->
-    <button type="button" id="loginLink" class="loginLink">
-      Login
+    <!-- Mobile Menu Toggle -->
+    <button id="menuToggle"
+            aria-label="Toggle navigation"
+            aria-expanded="false"
+            aria-controls="mainNav">
+      ☰ Menu
     </button>
 
-  <?php endif; ?>
-</nav>
+    <!-- Navigation -->
+    <nav id="mainNav">
+
+      <ul class="nav-links">
+        <li><a href="index.php">Home</a></li>
+        <li><a href="recipes.php">Recipes</a></li>
+        <li><a href="submit.php">Submit Recipe</a></li>
+        <li><a href="about.php">About</a></li>
+      </ul>
+
+      <?php if (isset($_SESSION['user_id'])): ?>
+        <div class="nav-right">
+
+          <!-- Logged-in user profile -->
+          <a class="nav-user" href="profile.php">
+            <?= h($_SESSION['username']) ?>
+          </a>
+
+          <!-- Admin tools -->
+          <?php if (is_admin_access()): ?>
+            <a class="nav-admin" href="profile.php#admin-tools">
+              Admin Tools
+            </a>
+          <?php endif; ?>
+
+          <!-- Logout -->
+        <a class="nav-logout" href="logout.php">
+          Logout (<?= h($_SESSION['username']) ?>)
+        </a>
+
+        </div>
+
+      <?php else: ?>
+
+        <!-- Guest login -->
+        <button type="button" id="loginLink" class="loginLink">
+          Login
+        </button>
+
+      <?php endif; ?>
+
+    </nav>
+
+  </div>
+</header>

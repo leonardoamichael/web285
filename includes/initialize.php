@@ -3,12 +3,12 @@
 session_start();
 
 /* Core Includes */
-require_once 'db-credentials.php';
-require_once 'database.php';
-require_once 'errors.php';
-require_once 'helpers.php';
-require_once 'auth.php';
-require_once 'recipe-functions.php';
+require_once __DIR__ . '/db-credentials.php';
+require_once __DIR__ . '/database.php';
+require_once __DIR__ . '/errors.php';
+require_once __DIR__ . '/helpers.php';
+require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/recipe-functions.php';
 
 /**
  * Establish primary database connection.

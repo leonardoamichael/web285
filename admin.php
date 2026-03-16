@@ -8,8 +8,8 @@ if (!isset($_SESSION['user_id'])) {
   redirect_error('login_required', 'index.php');
 }
 
-// Must be admin (role_id = 1)
-if ((int) ($_SESSION['role_id'] ?? 0) !== 1) {
+// Must have admin-level access
+if (!is_admin_access()) {
   redirect_error('access_denied', 'index.php');
 }
 

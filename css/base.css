@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Akaya+Kanadaka&family=Lato:wght@400;600;700&family=Tangerine:wght@700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Akaya+Kanadaka&family=Lato:wght@400;600;700&family=Courgette:wght@400&display=swap");
 
 /* =========================
    Reset / Global
@@ -13,7 +13,7 @@
 :root {
   /* Fonts */
   --font-body: "Lato", sans-serif;
-  --font-accent: "Tangerine", cursive;
+  --font-accent: "Courgette", serif;
 
   /* Core surfaces */
   --page-bg: #efe7df;     /* warm paper */
@@ -67,7 +67,7 @@ a:hover {
   text-decoration: underline;
 }
 
-header {
+header:not(.site-header) {
   text-align: center;
 }
 

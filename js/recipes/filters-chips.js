@@ -1,6 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
   const grid = document.querySelector(".recipe-grid");
-  if (!grid) return;
+  const recipeControls = document.getElementById("recipeControls");
+
+  if (!grid || !recipeControls) return;
 
   const cards = Array.from(grid.querySelectorAll(".recipe-tile"));
   if (!cards.length) return;
@@ -42,7 +44,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const renderChips = (wrap, tokens, group) => {
     if (!wrap) return;
-    Array.from(wrap.querySelectorAll(".chip")).forEach((n) => n.remove());
+
+    const body = wrap.querySelector(".filter-group-body");
+    if (!body) return;
+
+    Array.from(body.querySelectorAll(".chip")).forEach((n) => n.remove());
 
     tokens.forEach((t) => {
       const id = `${group}_${t.replace(/[^a-z0-9]+/g, "_")}`;
@@ -52,9 +58,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const input = document.createElement("input");
       input.className = "chip-input";
+      input.id = id;
       input.type = "checkbox";
       input.value = t;
-      input.id = id;
 
       const span = document.createElement("span");
       span.className = "chip-text";
@@ -62,7 +68,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       label.appendChild(input);
       label.appendChild(span);
-      wrap.appendChild(label);
+      body.appendChild(label);
     });
   };
 

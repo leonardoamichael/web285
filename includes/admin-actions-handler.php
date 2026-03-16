@@ -5,8 +5,7 @@ if (!isset($_SESSION['user_id'])) {
   redirect_error('login_required', '../index.php');
 }
 
-$role_id  = (int) ($_SESSION['role_id'] ?? 2);
-$is_admin = ($role_id === 1);
+$is_admin = is_admin_access();
 
 if (!$is_admin) {
   redirect_error('not_authorized', '../profile.php#admin-tools');
@@ -356,6 +355,126 @@ if ($action === 'category_delete') {
   $stmt->close();
 
   admin_redirect_msg('Category deleted.');
+}
+
+/* Promote member to admin */
+if ($action === 'promote_user') {
+
+  if (!is_super_admin()) {
+    admin_redirect_err('Only super admins can manage user roles.');
+  }
+
+  $user_id = (int) ($_POST['user_id'] ?? 0);
+  $current_user_id = (int) ($_SESSION['user_id'] ?? 0);
+
+  if ($user_id <= 0) {
+    admin_redirect_err('Invalid user.');
+  }
+
+  if ($user_id === $current_user_id) {
+    admin_redirect_err('You cannot change your own role.');
+  }
+
+  $stmt = $db->prepare(
+    "SELECT id_rol_usr
+     FROM user_usr
+     WHERE id_usr = ?
+     LIMIT 1"
+  );
+
+  $stmt->bind_param('i', $user_id);
+  $stmt->execute();
+  $result = $stmt->get_result();
+  $user = $result->fetch_assoc();
+  $stmt->close();
+
+  if (!$user) {
+    admin_redirect_err('User not found.');
+  }
+
+  $current_role = (int) $user['id_rol_usr'];
+
+  if ($current_role === ROLE_SUPER_ADMIN) {
+    admin_redirect_err('Super admin roles must be managed in the database.');
+  }
+
+  if ($current_role !== ROLE_MEMBER) {
+    admin_redirect_err('Only members can be promoted to admin.');
+  }
+
+  $new_role = ROLE_ADMIN;
+
+  $stmt = $db->prepare(
+    "UPDATE user_usr
+     SET id_rol_usr = ?
+     WHERE id_usr = ?"
+  );
+
+  $stmt->bind_param('ii', $new_role, $user_id);
+  $stmt->execute();
+  $stmt->close();
+
+  admin_redirect_msg('User promoted to admin.');
+}
+
+/* Demote admin to member */
+if ($action === 'demote_user') {
+
+  if (!is_super_admin()) {
+    admin_redirect_err('Only super admins can manage user roles.');
+  }
+
+  $user_id = (int) ($_POST['user_id'] ?? 0);
+  $current_user_id = (int) ($_SESSION['user_id'] ?? 0);
+
+  if ($user_id <= 0) {
+    admin_redirect_err('Invalid user.');
+  }
+
+  if ($user_id === $current_user_id) {
+    admin_redirect_err('You cannot change your own role.');
+  }
+
+  $stmt = $db->prepare(
+    "SELECT id_rol_usr
+     FROM user_usr
+     WHERE id_usr = ?
+     LIMIT 1"
+  );
+
+  $stmt->bind_param('i', $user_id);
+  $stmt->execute();
+  $result = $stmt->get_result();
+  $user = $result->fetch_assoc();
+  $stmt->close();
+
+  if (!$user) {
+    admin_redirect_err('User not found.');
+  }
+
+  $current_role = (int) $user['id_rol_usr'];
+
+  if ($current_role === ROLE_SUPER_ADMIN) {
+    admin_redirect_err('Super admin roles must be managed in the database.');
+  }
+
+  if ($current_role !== ROLE_ADMIN) {
+    admin_redirect_err('Only admins can be demoted to member.');
+  }
+
+  $new_role = ROLE_MEMBER;
+
+  $stmt = $db->prepare(
+    "UPDATE user_usr
+     SET id_rol_usr = ?
+     WHERE id_usr = ?"
+  );
+
+  $stmt->bind_param('ii', $new_role, $user_id);
+  $stmt->execute();
+  $stmt->close();
+
+  admin_redirect_msg('Admin demoted to member.');
 }
 
 admin_redirect_err('Invalid action.');

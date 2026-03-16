@@ -2,6 +2,29 @@
    Recipe submit form (submit.php)
 ========================= */
 
+/* Add buttons */
+#addIngredientBtn,
+#addStepBtn {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 700;
+  padding: 0.45rem 0.75rem;
+  width: fit-content;
+}
+
+#addIngredientBtn:disabled,
+#addStepBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+#addIngredientBtn:hover,
+#addStepBtn:hover {
+  background: var(--hover);
+}
+
 .recipe-form {
   display: grid;
   gap: 1rem;
@@ -17,114 +40,200 @@
   opacity: 0.9;
 }
 
+.recipe-form fieldset {
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.75rem;
+}
+
+.recipe-form legend {
+  font-weight: 800;
+  padding: 0 0.4rem;
+}
+
 .recipe-form label {
   font-weight: 700;
 }
 
-.recipe-form input[type="text"],
-.recipe-form input[type="number"],
 .recipe-form input[type="email"],
+.recipe-form input[type="number"],
 .recipe-form input[type="password"],
+.recipe-form input[type="text"],
 .recipe-form select,
 .recipe-form textarea {
-  width: 100%;
-  padding: 0.65rem 0.75rem;
-  border: 1px solid rgba(0,0,0,0.30);
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.30);
   border-radius: 12px;
   font: inherit;
-  background: #fff;
+  padding: 0.65rem 0.75rem;
+  width: 100%;
+}
+
+.recipe-form input[type="file"] {
+  padding: 0.25rem 0;
 }
 
 .recipe-form textarea {
   resize: vertical;
 }
 
-/* Ingredient rows */
-.recipe-form fieldset {
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 0.75rem;
-  margin: 0;
-  background: rgba(255,255,255,0.75);
-  display: grid;
-  gap: 0.5rem;
-}
-
-.recipe-form legend {
-  padding: 0 0.4rem;
-  font-weight: 800;
-}
-
-/* On desktop, lay ingredient fields in columns */
-@media (min-width: 900px) {
-  .recipe-form fieldset {
-    grid-template-columns: 140px 220px 1fr 1fr;
-    align-items: end;
-  }
-
-  .recipe-form fieldset.chip-set {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, 140px);
-    justify-content: start;
-    gap: 10px 14px;
-    align-items: center;
-  }
-
-  .recipe-form fieldset legend {
-    grid-column: 1 / -1;
-  }
-
-  .recipe-form fieldset label {
-    font-size: 0.9rem;
-  }
-}
-
 /* Steps look like cards */
 .recipe-form textarea[name="step[]"] {
+  background: rgba(255, 255, 255, 0.90);
   min-height: 90px;
-  background: rgba(255,255,255,0.90);
-}
-
-/* File input spacing */
-.recipe-form input[type="file"] {
-  padding: 0.25rem 0;
 }
 
 /* Submit button */
 .recipe-form button[type="submit"] {
-  width: fit-content;
-  padding: 0.65rem 1rem;
-  border-radius: 12px;
-  border: 1px solid rgba(0,0,0,0.10);
   background: var(--accent);
+  border: 1px solid rgba(0, 0, 0, 0.10);
+  border-radius: 12px;
   color: #fff;
-  font-weight: 800;
   cursor: pointer;
+  font-weight: 800;
+  padding: 0.65rem 1rem;
+  width: fit-content;
 }
 
 .recipe-form button[type="submit"]:hover {
   background: #ab3726;
 }
 
-/* Add buttons */
-#addIngredientBtn,
-#addStepBtn {
-  width: fit-content;
-  padding: 0.45rem 0.75rem;
-  border: 1px solid var(--border);
-  border-radius: 12px;
+/* Filter groups */
+.recipe-form .filter-group-body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  max-height: 160px;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.recipe-form .filter-group-search {
+  align-self: start;
   background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.30);
+  border-radius: 12px;
+  font: inherit;
+  padding: 0.55rem 0.75rem;
+  width: 100%;
+}
+
+.recipe-form .filter-group-toggle {
+  align-self: start;
+  background: transparent;
+  border: 0;
+  color: var(--accent);
   cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  padding: 0;
+}
+
+.recipe-form .filter-group-toggle:hover {
+  text-decoration: underline;
+}
+
+/* Submit page helper text */
+.submit-intro {
+  color: var(--muted);
+  margin-top: 0;
+}
+
+.required-mark {
+  color: var(--accent);
   font-weight: 700;
 }
 
-#addIngredientBtn:hover,
-#addStepBtn:hover {
+.optional-mark {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+/* Time fields */
+.time-fields {
+  align-items: start;
+  gap: 0.4rem;
+  grid-template-columns: 1fr;
+}
+
+.time-label {
+  font-weight: 700;
+  margin: 0.45rem 0 0.15rem;
+  opacity: 1;
+}
+
+.time-row {
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: 1fr 1fr;
+}
+
+.time-col {
+  min-width: 0;
+}
+
+/* Ingredient rows */
+.ingredient-row {
+  align-items: end;
+}
+
+/* File upload styling */
+
+.file-input {
+  display: none;
+}
+
+.file-button {
+  display: inline-block;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 700;
+  padding: 0.45rem 0.75rem;
+}
+
+.file-button:hover {
   background: var(--hover);
 }
 
-#addIngredientBtn:disabled,
-#addStepBtn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+.file-name {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+/* Responsive */
+@media (max-width: 899px) {
+  .recipe-form fieldset.chip-set.filter-group {
+    align-items: start;
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 900px) {
+  .ingredient-row {
+    grid-template-columns: 120px 180px 1fr 1fr;
+  }
+
+  .recipe-form fieldset.chip-set.filter-group {
+    align-items: start;
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: 140px 1fr auto;
+  }
+
+  .recipe-form fieldset label {
+    font-size: 0.9rem;
+  }
+
+  .recipe-form fieldset legend {
+    grid-column: 1 / -1;
+  }
 }

@@ -11,7 +11,7 @@
  */
 function db_connect(): mysqli
 {
-  $db = new mysqli(DB_SERVER, DB_USER, DB_PASS, DB_NAME);
+  $db = new mysqli(DB_SERVER, DB_USER, DB_PASS, DB_NAME, DB_PORT);
 
   if ($db->connect_errno) {
     internal_error("Database connection failed: " . $db->connect_error);

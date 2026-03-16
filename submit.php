@@ -86,6 +86,10 @@ include 'includes/header.php';
 
     <h1>Submit Recipe</h1>
 
+    <p class="submit-intro">
+      Share a recipe with the community. Fields marked <strong>*</strong> are required.
+    </p>
+
     <?php if (!empty($errors['general'])): ?>
       <p role="alert">
         <strong><?= h($errors['general']) ?></strong>
@@ -107,7 +111,7 @@ include 'includes/header.php';
       id="recipeSubmitForm"
     >
 
-      <label for="title">Recipe Title</label>
+      <label for="title">Recipe Title <span class="required-mark">*</span></label>
 
       <input
         id="title"
@@ -118,7 +122,9 @@ include 'includes/header.php';
         value="<?= h($title ?? '') ?>"
       >
 
-      <label for="description">Description (max 250 characters)</label>
+      <label for="description">
+        Description <span class="optional-mark">(optional)</span>
+      </label>
 
       <textarea
         id="description"
@@ -131,98 +137,206 @@ include 'includes/header.php';
       <p class="field-help">
         <span id="descCount">0</span>/250
       </p>
-<fieldset class="chip-set">
-  <legend>Diet</legend>
 
-  <?php foreach ($diet_options as $id => $label): ?>
+      <fieldset class="time-fields">
+        <legend>Time <span class="optional-mark">(optional)</span></legend>
 
-    <?php
-      $checked = in_array(
-        $id,
-        (array)($_POST['diet'] ?? []),
-        true
-      ) ? 'checked' : '';
-    ?>
+        <?php
+        $prep_hours_val = (int)($_POST['prep_hours'] ?? 0);
+        $prep_mins_val  = (int)($_POST['prep_minutes'] ?? 0);
 
-    <label class="chip">
-      <input
-        class="chip-input"
-        type="checkbox"
-        name="diet[]"
-        value="<?= $id ?>"
-        <?= $checked ?>
-      >
-      <span class="chip-text"><?= h($label) ?></span>
-    </label>
+        $cook_hours_val = (int)($_POST['cook_hours'] ?? 0);
+        $cook_mins_val  = (int)($_POST['cook_minutes'] ?? 0);
+        ?>
 
-  <?php endforeach; ?>
-</fieldset>
+        <p class="time-label">Prep Time</p>
+        <div class="time-row">
+          <div class="time-col">
+            <select id="prep_hours" name="prep_hours">
+              <?php for ($h = 0; $h <= 24; $h++): ?>
+                <option value="<?= $h ?>" <?= ($h === $prep_hours_val) ? 'selected' : '' ?>>
+                  <?= $h ?> hr
+                </option>
+              <?php endfor; ?>
+            </select>
+          </div>
 
-<fieldset class="chip-set">
-  <legend>Type</legend>
+          <div class="time-col">
+            <select id="prep_minutes" name="prep_minutes">
+              <?php for ($m = 0; $m <= 59; $m++): ?>
+                <option value="<?= $m ?>" <?= ($m === $prep_mins_val) ? 'selected' : '' ?>>
+                  <?= $m ?> min
+                </option>
+              <?php endfor; ?>
+            </select>
+          </div>
+        </div>
 
-  <?php foreach ($type_options as $id => $label): ?>
+        <p class="time-label">Cook Time</p>
+        <div class="time-row">
+          <div class="time-col">
+            <select id="cook_hours" name="cook_hours">
+              <?php for ($h = 0; $h <= 24; $h++): ?>
+                <option value="<?= $h ?>" <?= ($h === $cook_hours_val) ? 'selected' : '' ?>>
+                  <?= $h ?> hr
+                </option>
+              <?php endfor; ?>
+            </select>
+          </div>
 
-    <?php
-      $checked = in_array(
-        $id,
-        (array)($_POST['type'] ?? []),
-        true
-      ) ? 'checked' : '';
-    ?>
+          <div class="time-col">
+            <select id="cook_minutes" name="cook_minutes">
+              <?php for ($m = 0; $m <= 59; $m++): ?>
+                <option value="<?= $m ?>" <?= ($m === $cook_mins_val) ? 'selected' : '' ?>>
+                  <?= $m ?> min
+                </option>
+              <?php endfor; ?>
+            </select>
+          </div>
+        </div>
+      </fieldset>
 
-    <label class="chip">
-      <input
-        class="chip-input"
-        type="checkbox"
-        name="type[]"
-        value="<?= $id ?>"
-        <?= $checked ?>
-      >
-      <span class="chip-text"><?= h($label) ?></span>
-    </label>
+      <fieldset>
+        <legend>YouTube Video <span class="optional-mark">(optional)</span></legend>
 
-  <?php endforeach; ?>
-</fieldset>
+        <label for="youtube_url">YouTube link</label>
 
-<fieldset class="chip-set">
-  <legend>Style</legend>
+        <input
+          type="text"
+          id="youtube_url"
+          name="youtube_url"
+          placeholder="https://www.youtube.com/watch?v=..."
+          value="<?= h($_POST['youtube_url'] ?? '') ?>"
+        >
+      </fieldset>
 
-  <?php foreach ($style_options as $id => $label): ?>
+      <fieldset class="chip-set filter-chipset filter-group">
+        <legend>Diet <span class="optional-mark">(optional)</span></legend>
 
-    <?php
-      $checked = in_array(
-        $id,
-        (array)($_POST['style'] ?? []),
-        true
-      ) ? 'checked' : '';
-    ?>
+        <input
+          class="filter-group-search"
+          type="search"
+          placeholder="Search diet"
+          aria-label="Search diet"
+        >
 
-    <label class="chip">
-      <input
-        class="chip-input"
-        type="checkbox"
-        name="style[]"
-        value="<?= $id ?>"
-        <?= $checked ?>
-      >
-      <span class="chip-text"><?= h($label) ?></span>
-    </label>
+        <div class="filter-group-body">
 
-  <?php endforeach; ?>
-</fieldset>
+          <?php foreach ($diet_options as $id => $label): ?>
 
-      <h2>Ingredients</h2>
-      <p>Add as many ingredients as needed. Use “Add ingredient”.</p>
+            <?php
+              $checked = in_array(
+                $id,
+                (array)($_POST['diet'] ?? []),
+                true
+              ) ? 'checked' : '';
+            ?>
+
+            <label class="chip">
+              <input
+                class="chip-input"
+                type="checkbox"
+                name="diet[]"
+                value="<?= $id ?>"
+                <?= $checked ?>
+              >
+              <span class="chip-text"><?= h($label) ?></span>
+            </label>
+
+          <?php endforeach; ?>
+
+        </div>
+
+        <button type="button" class="filter-group-toggle">Show All</button>
+      </fieldset>
+
+      <fieldset class="chip-set filter-chipset filter-group">
+        <legend>Type <span class="optional-mark">(optional)</span></legend>
+
+        <input
+          class="filter-group-search"
+          type="search"
+          placeholder="Search type"
+          aria-label="Search type"
+        >
+
+        <div class="filter-group-body">
+
+          <?php foreach ($type_options as $id => $label): ?>
+
+            <?php
+              $checked = in_array(
+                $id,
+                (array)($_POST['type'] ?? []),
+                true
+              ) ? 'checked' : '';
+            ?>
+
+            <label class="chip">
+              <input
+                class="chip-input"
+                type="checkbox"
+                name="type[]"
+                value="<?= $id ?>"
+                <?= $checked ?>
+              >
+              <span class="chip-text"><?= h($label) ?></span>
+            </label>
+
+          <?php endforeach; ?>
+
+        </div>
+
+        <button type="button" class="filter-group-toggle">Show All</button>
+      </fieldset>
+
+      <fieldset class="chip-set filter-chipset filter-group">
+        <legend>Style <span class="optional-mark">(optional)</span></legend>
+
+        <input
+          class="filter-group-search"
+          type="search"
+          placeholder="Search style"
+          aria-label="Search style"
+        >
+
+        <div class="filter-group-body">
+
+          <?php foreach ($style_options as $id => $label): ?>
+
+            <?php
+              $checked = in_array(
+                $id,
+                (array)($_POST['style'] ?? []),
+                true
+              ) ? 'checked' : '';
+            ?>
+
+            <label class="chip">
+              <input
+                class="chip-input"
+                type="checkbox"
+                name="style[]"
+                value="<?= $id ?>"
+                <?= $checked ?>
+              >
+              <span class="chip-text"><?= h($label) ?></span>
+            </label>
+
+          <?php endforeach; ?>
+
+        </div>
+
+        <button type="button" class="filter-group-toggle">Show All</button>
+      </fieldset>
+
+      <h2>Ingredients <span class="required-mark">*</span></h2>
+      <p>Add at least one ingredient. Use “Add ingredient” to add more.</p>
 
       <button type="button" id="addIngredientBtn">+ Add ingredient</button>
 
       <?php for ($i = 0; $i < 12; $i++): ?>
         <?php
-          /*
-           * If the user submitted the form and had values in a row,
-           * keep it visible on POST-back.
-           */
           $qty_val  = $_POST['qty'][$i]  ?? '';
           $unit_val = $_POST['unit'][$i] ?? '';
           $ing_val  = $_POST['ing'][$i]  ?? '';
@@ -235,12 +349,8 @@ include 'includes/header.php';
             trim((string) $note_val) !== ''
           );
 
-          // Default state: hidden unless it has values (POST back).
-          // JS will reveal the first 2 rows on a fresh load.
           $hidden_class = $row_has_value ? '' : 'is-hidden';
         ?>
-
-
 
         <fieldset class="ingredient-row <?= $hidden_class ?>">
           <legend>Ingredient <?= $i + 1 ?></legend>
@@ -288,7 +398,9 @@ include 'includes/header.php';
             value="<?= h($ing_val) ?>"
           >
 
-          <label for="note<?= $i ?>">Note (optional)</label>
+          <label for="note<?= $i ?>">
+            Note <span class="optional-mark">(optional)</span>
+          </label>
           <input
             id="note<?= $i ?>"
             name="note[]"
@@ -300,8 +412,8 @@ include 'includes/header.php';
         </fieldset>
       <?php endfor; ?>
 
-      <h2>Directions</h2>
-      <p>Add as many steps as needed. Use “Add step”.</p>
+      <h2>Directions <span class="required-mark">*</span></h2>
+      <p>Add at least one step. Use “Add step” to add more.</p>
 
       <button type="button" id="addStepBtn">+ Add step</button>
 
@@ -326,21 +438,30 @@ include 'includes/header.php';
         </div>
       <?php endfor; ?>
 
-      <h2>Images</h2>
+      <h2>Images <span class="optional-mark">(optional)</span></h2>
 
       <label for="images">
-        Recipe Images (optional — you can select multiple)
+        Recipe Images <span class="optional-mark">(optional — you can select multiple)</span>
       </label>
 
       <input
-        id="images"
-        name="images[]"
-        type="file"
-        accept=".jpg,.jpeg,.png,.webp"
-        multiple
+      id="images"
+      name="images[]"
+      type="file"
+      accept=".jpg,.jpeg,.png,.webp"
+      multiple
+      class="file-input"
       >
 
-      <label for="image_alt">Image description (optional)</label>
+      <label for="images" class="file-button">
+      Select Images
+      </label>
+
+      <span class="file-name">No files selected</span>
+
+      <label for="image_alt">
+        Image description <span class="optional-mark">(optional)</span>
+      </label>
 
       <input
         id="image_alt"

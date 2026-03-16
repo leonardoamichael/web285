@@ -8,3 +8,5 @@ import "./utils/relative-time.js";
 
 import "./recipes/scale-ingredients.js";
 import "./recipes/filters-chips.js";
+import "./recipes/filter-toggle.js";
+import "./recipes/filter-group-ui.js";

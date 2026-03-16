@@ -50,7 +50,7 @@ function create_user(mysqli $db, string $username, string $email, string $passwo
 {
   $hash = password_hash($password, PASSWORD_DEFAULT);
 
-  $role_id = 2;  // member
+  $role_id = ROLE_MEMBER; // member
   $level_id = 1; // Level 1
 
   $sql = "INSERT INTO user_usr
@@ -88,4 +88,43 @@ function login_user(int $id, string $username, int $role_id): void
   $_SESSION['user_id'] = $id;
   $_SESSION['username'] = $username;
   $_SESSION['role_id'] = $role_id;
+}
+
+define('ROLE_ADMIN', 1);
+define('ROLE_MEMBER', 2);
+define('ROLE_SUPER_ADMIN', 3);
+
+/**
+ * Get the current user's role ID from session.
+ *
+ * Defaults to member when no explicit role is present.
+ *
+ * @return int Current session role ID
+ */
+function current_role_id(): int
+{
+  return (int) ($_SESSION['role_id'] ?? ROLE_MEMBER);
+}
+
+/**
+ * Check whether the current user has admin-level access.
+ *
+ * Admin-level access includes both admin and super admin.
+ *
+ * @return bool True when current user is admin or super admin
+ */
+function is_admin_access(): bool
+{
+  $role_id = current_role_id();
+  return ($role_id === ROLE_ADMIN || $role_id === ROLE_SUPER_ADMIN);
+}
+
+/**
+ * Check whether the current user is a super admin.
+ *
+ * @return bool True when current user is super admin
+ */
+function is_super_admin(): bool
+{
+  return (current_role_id() === ROLE_SUPER_ADMIN);
 }
