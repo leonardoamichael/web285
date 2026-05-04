@@ -185,28 +185,25 @@
 /* File upload styling */
 
 .file-input {
-  display: none;
+  display: block;
+  font: inherit;
+  margin-top: 0.35rem;
 }
 
-.file-button {
-  display: inline-block;
+.file-input::file-selector-button {
   background: #fff;
   border: 1px solid var(--border);
   border-radius: 12px;
+  color: var(--text);
   cursor: pointer;
+  font: inherit;
   font-weight: 700;
+  margin-right: 0.5rem;
   padding: 0.45rem 0.75rem;
 }
 
-.file-button:hover {
+.file-input::file-selector-button:hover {
   background: var(--hover);
-}
-
-.file-name {
-  display: block;
-  margin-top: 0.35rem;
-  font-size: 0.9rem;
-  color: var(--muted);
 }
 
 /* Responsive */

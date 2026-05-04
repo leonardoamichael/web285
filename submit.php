@@ -453,11 +453,6 @@ include 'includes/header.php';
       class="file-input"
       >
 
-      <label for="images" class="file-button">
-      Select Images
-      </label>
-
-      <span class="file-name">No files selected</span>
 
       <label for="image_alt">
         Image description <span class="optional-mark">(optional)</span>
