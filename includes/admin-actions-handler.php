@@ -417,6 +417,70 @@ if ($action === 'promote_user') {
   admin_redirect_msg('User promoted to admin.');
 }
 
+/* Activate / deactivate admin privileges */
+if ($action === 'deactivate_admin' || $action === 'reactivate_admin') {
+
+  if (!is_super_admin()) {
+    admin_redirect_err('Only super admins can manage admin status.');
+  }
+
+  $user_id = (int) ($_POST['user_id'] ?? 0);
+  $current_user_id = (int) ($_SESSION['user_id'] ?? 0);
+
+  if ($user_id <= 0) {
+    admin_redirect_err('Invalid user.');
+  }
+
+  if ($user_id === $current_user_id) {
+    admin_redirect_err('You cannot change your own admin status.');
+  }
+
+  $stmt = $db->prepare(
+    "SELECT id_rol_usr
+     FROM user_usr
+     WHERE id_usr = ?
+     LIMIT 1"
+  );
+
+  $stmt->bind_param('i', $user_id);
+  $stmt->execute();
+  $result = $stmt->get_result();
+  $user = $result->fetch_assoc();
+  $stmt->close();
+
+  if (!$user) {
+    admin_redirect_err('User not found.');
+  }
+
+  $current_role = (int) $user['id_rol_usr'];
+
+  if ($current_role === ROLE_SUPER_ADMIN) {
+    admin_redirect_err('Super admin status must be managed in the database.');
+  }
+
+  if ($current_role !== ROLE_ADMIN) {
+    admin_redirect_err('Only admins can be activated or deactivated.');
+  }
+
+  $admin_active = ($action === 'reactivate_admin') ? 1 : 0;
+
+  $stmt = $db->prepare(
+    "UPDATE user_usr
+     SET admin_active_usr = ?
+     WHERE id_usr = ?"
+  );
+
+  $stmt->bind_param('ii', $admin_active, $user_id);
+  $stmt->execute();
+  $stmt->close();
+
+  $msg = ($admin_active === 1)
+    ? 'Admin reactivated.'
+    : 'Admin deactivated.';
+
+  admin_redirect_msg($msg);
+}
+
 /* Demote admin to member */
 if ($action === 'demote_user') {
 

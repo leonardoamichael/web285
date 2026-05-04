@@ -40,6 +40,9 @@ if (!empty($recipes) && is_array($recipes)) {
       $show_rating_badge = ($rating_count > 0);
       $is_perfect_card   = ($avg_rating >= 4.95 && $rating_count > 1);
 
+      $display_rating = round($avg_rating * 2) / 2;
+      $star_percent   = ($display_rating / 5) * 100;
+
       $category_options = [];
 
       foreach (['type_cats_csv', 'style_cats_csv', 'diet_cats_csv'] as $field) {
@@ -80,12 +83,6 @@ if (!empty($recipes) && is_array($recipes)) {
             loading="lazy"
           >
 
-          <?php if ($show_rating_badge): ?>
-            <span class="recipe-tile-badge recipe-tile-badge-rating">
-              ⭐ <?= h(number_format($avg_rating, 1)) ?>
-            </span>
-          <?php endif; ?>
-
           <?php if ($splash_badge !== ''): ?>
             <span class="recipe-tile-badge recipe-tile-badge-splash">
               <?= h($splash_badge) ?>
@@ -93,9 +90,23 @@ if (!empty($recipes) && is_array($recipes)) {
           <?php endif; ?>
         </div>
 
-        <div class="recipe-tile-title">
-          <?= h($recipe['title_rec']) ?>
-        </div>
+<div class="recipe-tile-title">
+  <?= h($recipe['title_rec']) ?>
+</div>
+
+<div class="recipe-tile-rating-row">
+  <?php if ($show_rating_badge): ?>
+    <span
+      class="recipe-tile-rating-stars<?= $is_perfect_card ? ' recipe-tile-rating-stars--perfect' : '' ?>"
+      aria-label="Rated <?= h(number_format($avg_rating, 1)) ?> out of 5"
+    >
+      <span class="recipe-tile-rating-stars-base">★★★★★</span>
+      <span class="recipe-tile-rating-stars-fill" style="width: <?= h((string) $star_percent) ?>%;">★★★★★</span>
+    </span>
+  <?php else: ?>
+    <span class="recipe-tile-rating-placeholder" aria-hidden="true">★★★★★</span>
+  <?php endif; ?>
+</div>
 
       </a>
 

@@ -10,3 +10,5 @@ import "./recipes/scale-ingredients.js";
 import "./recipes/filters-chips.js";
 import "./recipes/filter-toggle.js";
 import "./recipes/filter-group-ui.js";
+
+import "./recipes/print-preview.js";

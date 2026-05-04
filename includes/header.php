@@ -17,7 +17,10 @@
 
     <!-- Site Logo / Branding -->
     <div class="site-branding">
-      <a href="index.php" class="site-logo">Recipe Share</a>
+    <a href="index.php" class="site-logo">
+      <span aria-hidden="true">🍽️</span>
+      Recipe Share
+    </a>
     </div>
 
     <!-- Mobile Menu Toggle -->
@@ -42,9 +45,7 @@
         <div class="nav-right">
 
           <!-- Logged-in user profile -->
-          <a class="nav-user" href="profile.php">
-            <?= h($_SESSION['username']) ?>
-          </a>
+          <a class="nav-user" href="profile.php">Profile</a>
 
           <!-- Admin tools -->
           <?php if (is_admin_access()): ?>

@@ -5,3 +5,6 @@ uploads/recipes
 usability-results.txt
 usability-submit.php
 usability.php
+# macOS metadata
+.DS_Store
+._*

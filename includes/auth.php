@@ -83,11 +83,12 @@ function create_user(mysqli $db, string $username, string $email, string $passwo
  * @param int $role_id Role ID used for access control checks
  * @return void
  */
-function login_user(int $id, string $username, int $role_id): void
+function login_user(int $id, string $username, int $role_id, int $admin_active = 1): void
 {
-  $_SESSION['user_id'] = $id;
-  $_SESSION['username'] = $username;
-  $_SESSION['role_id'] = $role_id;
+  $_SESSION['user_id']      = $id;
+  $_SESSION['username']     = $username;
+  $_SESSION['role_id']      = $role_id;
+  $_SESSION['admin_active'] = $admin_active;
 }
 
 define('ROLE_ADMIN', 1);
@@ -116,7 +117,16 @@ function current_role_id(): int
 function is_admin_access(): bool
 {
   $role_id = current_role_id();
-  return ($role_id === ROLE_ADMIN || $role_id === ROLE_SUPER_ADMIN);
+
+  if ($role_id === ROLE_SUPER_ADMIN) {
+    return true;
+  }
+
+  if ($role_id !== ROLE_ADMIN) {
+    return false;
+  }
+
+  return ((int) ($_SESSION['admin_active'] ?? 0) === 1);
 }
 
 /**

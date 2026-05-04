@@ -90,11 +90,43 @@
 }
 
 .recipe-tile-badge-rating {
-  background: rgba(255, 250, 245, 0.94);
+  background: transparent;
+  border: 0;
+  box-shadow: none;
   color: var(--text);
+  gap: 0;
   left: 0.7rem;
+  padding: 0;
   top: 0.7rem;
-  box-shadow: 0 8px 16px rgba(0,0,0,0.12);
+}
+
+.recipe-tile-rating-stars {
+  display: inline-block;
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  position: relative;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.recipe-tile-rating-stars-base {
+  color: rgba(60, 60, 60, 0.28);
+  display: block;
+}
+
+.recipe-tile-rating-stars-fill {
+  color: #d4af37;
+  left: 0;
+  overflow: hidden;
+  position: absolute;
+  top: 0;
+  white-space: nowrap;
+}
+
+.recipe-tile-rating-stars--perfect .recipe-tile-rating-stars-fill {
+  color: #d4a017;
+  text-shadow: none;
 }
 
 .recipe-tile-badge-splash {
@@ -108,32 +140,18 @@
 /* Perfect-rating center highlight */
 .recipe-tile--perfect {
   border: 2px solid #e5b100;
-  box-shadow: 0 10px 28px rgba(229, 177, 0, 0.22);
+  box-shadow: none;
   position: relative;
 }
 
 .recipe-tile--perfect::before {
-  content: "⭐";
-  position: absolute;
-  top: -14px;
-  left: 50%;
-  transform: translateX(-50%);
-  color: #e5b100;
-  font-size: 1rem;
-  line-height: 1;
-  background: transparent;
-  border: 0;
-  padding: 0;
-  text-shadow:
-    0 0 10px rgba(229, 177, 0, 0.45),
-    0 2px 4px rgba(0, 0, 0, 0.18);
-  z-index: 4;
+  display: none;
 }
 
 .recipe-tile--perfect .recipe-tile-badge-rating {
-  background: #fff7d6;
-  border: 1px solid #e5b100;
-  color: #9a6a00;
+  background: transparent;
+  border: 0;
+  color: inherit;
 }
 
 .recipe-tile .recipe-status {
@@ -142,6 +160,34 @@
 
 .recipe-tile .recipe-meta {
   margin: 0.25rem 0;
+}
+
+.recipe-tile-title {
+  padding: 0.9rem 0.95rem 0.25rem;
+}
+
+.recipe-tile-rating-row {
+  color: var(--text);
+  line-height: 1;
+  padding: 0 0.95rem 1rem;
+}
+
+.recipe-tile-rating-row .recipe-tile-rating-stars {
+  font-size: 0.9rem;
+}
+
+.recipe-tile-rating-row {
+  line-height: 1;
+  min-height: 1rem;
+  padding: 0 0.95rem 1rem;
+}
+
+.recipe-tile-rating-placeholder {
+  display: inline-block;
+  font-size: 0.9rem;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  visibility: hidden;
 }
 
 /* =========================
@@ -357,4 +403,10 @@ nav a:focus-visible,
 
 p[role="alert"] {
   margin: 0;
+}
+
+.site-logo {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.4rem;
 }

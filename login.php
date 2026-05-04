@@ -17,7 +17,7 @@ if ($username_or_email === '' || $password === '') {
 }
 
 /* User lookup */
-$sql = "SELECT id_usr, username_usr, password_hash_usr, id_rol_usr
+$sql = "SELECT id_usr, username_usr, password_hash_usr, id_rol_usr, admin_active_usr
         FROM user_usr
         WHERE username_usr = ? OR email_usr = ?
         LIMIT 1";
@@ -43,12 +43,13 @@ if (!$user || !password_verify($password, $user['password_hash_usr'])) {
 }
 
 /* Session initialization */
-$_SESSION['user_id']  = (int) $user['id_usr'];
-$_SESSION['username'] = $user['username_usr'];
-$_SESSION['role_id']  = (int) $user['id_rol_usr'];
+$_SESSION['user_id']      = (int) $user['id_usr'];
+$_SESSION['username']     = $user['username_usr'];
+$_SESSION['role_id']      = (int) $user['id_rol_usr'];
+$_SESSION['admin_active'] = (int) $user['admin_active_usr'];
 
 /* Role-based redirect */
-if ($_SESSION['role_id'] === 1) {
+if (is_admin_access()) {
   header('Location: admin.php');
   exit;
 }

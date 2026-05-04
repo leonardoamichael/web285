@@ -1,0 +1,251 @@
+/* =========================
+   Recipe Print Preview Page
+========================= */
+
+/* Respect JS show/hide controls */
+.recipe-print-page [hidden] {
+  display: none !important;
+}
+
+.recipe-print-page {
+  display: grid;
+  gap: 1rem;
+}
+
+.recipe-print-controls {
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+}
+
+.recipe-print-back {
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.recipe-print-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 1rem;
+}
+
+.recipe-print-options label {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.35rem;
+  font-weight: 700;
+}
+
+#printPageButton {
+  background: var(--accent);
+  border: 0;
+  border-radius: 999px;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  justify-self: start;
+  padding: 0.6rem 1rem;
+}
+
+#printPageButton:hover {
+  opacity: 0.9;
+}
+
+.recipe-print-sheet {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: #222;
+  display: grid;
+  gap: 1.25rem;
+  padding: 1.5rem;
+}
+
+.recipe-print-meta,
+.recipe-print-description,
+.recipe-print-categories p {
+  margin: 0.25rem 0;
+}
+
+.recipe-print-description {
+  font-size: 1.05rem;
+}
+
+.recipe-print-categories {
+  border-top: 1px solid #ddd;
+  margin-top: 0.75rem;
+  padding-top: 0.5rem;
+}
+
+.recipe-print-photos {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.recipe-print-gallery {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.recipe-print-photos figure {
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  margin: 0;
+  overflow: hidden;
+}
+
+.recipe-print-photos img {
+  display: block;
+  height: auto;
+  max-height: 320px;
+  object-fit: contain;
+  width: 100%;
+}
+
+.recipe-print-photos figcaption {
+  font-size: 0.85rem;
+  padding: 0.4rem 0.55rem;
+}
+
+.recipe-print-columns {
+  display: grid;
+  gap: 1rem;
+}
+
+.recipe-print-section {
+  border-top: 2px solid #222;
+  padding-top: 0.75rem;
+}
+
+.recipe-print-section h2,
+.recipe-print-notes h2 {
+  margin: 0 0 0.5rem;
+}
+
+.recipe-print-section ul,
+.recipe-print-section ol {
+  margin: 0;
+  padding-left: 1.35rem;
+}
+
+.recipe-print-section li {
+  margin-bottom: 0.45rem;
+}
+
+.recipe-print-notes {
+  border-top: 2px solid #222;
+  padding-top: 0.75rem;
+}
+
+.recipe-print-note-box {
+  border: 1px solid #aaa;
+  min-height: 120px;
+}
+
+.recipe-print-header h1 {
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+/* =========================
+   Actual Print Styling
+========================= */
+
+@media print {
+  @page {
+    margin: 0.5in;
+  }
+
+  body {
+    background: #fff;
+    color: #000;
+    font-size: 11pt;
+  }
+
+  .site-header,
+  .site-footer,
+  .no-print {
+    display: none !important;
+  }
+
+  #container,
+  main {
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    margin: 0;
+    max-width: none;
+    padding: 0;
+  }
+
+  .recipe-print-page,
+  .recipe-print-sheet {
+    border: 0;
+    border-radius: 0;
+    display: block;
+    gap: 0;
+    padding: 0;
+  }
+
+  .recipe-print-header {
+    border-bottom: 2px solid #000;
+    margin-bottom: 0.2in;
+    padding-bottom: 0.12in;
+  }
+
+.recipe-print-header h1 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 20pt;
+  font-weight: 700;
+}
+
+  .recipe-print-meta,
+  .recipe-print-description,
+  .recipe-print-categories {
+    font-size: 10pt;
+  }
+
+  .recipe-print-photos {
+    margin-bottom: 0.2in;
+  }
+
+  .recipe-print-gallery {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+.recipe-print-photos img {
+  height: auto;
+  max-height: 2in;
+  object-fit: contain;
+}
+
+  .recipe-print-columns {
+    display: grid;
+    gap: 0.25in;
+    grid-template-columns: 0.9fr 1.4fr;
+  }
+
+  .recipe-print-section,
+  .recipe-print-notes {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .recipe-print-section h2,
+  .recipe-print-notes h2 {
+    font-size: 14pt;
+  }
+
+  .recipe-print-section li {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .recipe-print-note-box {
+    min-height: 1.25in;
+  }
+}

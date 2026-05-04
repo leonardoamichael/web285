@@ -282,4 +282,18 @@ main {
     gap: 0.5rem;
     justify-content: flex-end;
   }
+
+  .nav-right {
+  max-width: 320px;
+  min-width: 0;
+}
+
+.nav-logout,
+.loginLink {
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 }

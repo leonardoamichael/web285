@@ -10,6 +10,7 @@ $stmt = $db->prepare(
           u.username_usr,
           u.email_usr,
           u.id_rol_usr,
+          u.admin_active_usr,
           r.name_rol
    FROM user_usr u
    JOIN role_rol r ON r.id_rol = u.id_rol_usr
@@ -47,13 +48,18 @@ $current_user_id = (int) ($_SESSION['user_id'] ?? 0);
         $target_user_id = (int) $user['id_usr'];
         $target_role_id = (int) $user['id_rol_usr'];
         $is_self = ($target_user_id === $current_user_id);
+        $admin_active = (int) ($user['admin_active_usr'] ?? 1);
         ?>
 
         <li class="admin-recipe-row">
           <div>
             <strong><?= h($user['username_usr']) ?></strong>
             — <?= h($user['email_usr']) ?>
-            <small>(<?= h($user['name_rol']) ?>)</small>
+            <small>
+              (<?= h($user['name_rol']) ?><?php if ($target_role_id === ROLE_ADMIN): ?>,
+                <?= $admin_active === 1 ? 'active' : 'inactive' ?>
+              <?php endif; ?>)
+            </small>
           </div>
 
           <div>
@@ -71,16 +77,39 @@ $current_user_id = (int) ($_SESSION['user_id'] ?? 0);
                 <button type="submit">Promote to Admin</button>
               </form>
 
-            <?php elseif ($target_role_id === ROLE_ADMIN): ?>
+          <?php elseif ($target_role_id === ROLE_ADMIN): ?>
+
+            <?php if ($admin_active === 1): ?>
               <form
                 method="post"
                 action="includes/admin-actions-handler.php"
                 class="admin-inline-form"
               >
-                <input type="hidden" name="action" value="demote_user">
+                <input type="hidden" name="action" value="deactivate_admin">
                 <input type="hidden" name="user_id" value="<?= $target_user_id ?>">
-                <button type="submit">Demote to Member</button>
+                <button type="submit">Deactivate Admin</button>
               </form>
+            <?php else: ?>
+              <form
+                method="post"
+                action="includes/admin-actions-handler.php"
+                class="admin-inline-form"
+              >
+                <input type="hidden" name="action" value="reactivate_admin">
+                <input type="hidden" name="user_id" value="<?= $target_user_id ?>">
+                <button type="submit">Reactivate Admin</button>
+              </form>
+            <?php endif; ?>
+
+            <form
+              method="post"
+              action="includes/admin-actions-handler.php"
+              class="admin-inline-form"
+            >
+              <input type="hidden" name="action" value="demote_user">
+              <input type="hidden" name="user_id" value="<?= $target_user_id ?>">
+              <button type="submit">Demote to Member</button>
+            </form>
 
             <?php elseif ($target_role_id === ROLE_SUPER_ADMIN): ?>
               <span>Super Admin (DB only)</span>
