@@ -161,7 +161,7 @@ function fetch_recipe_page_data(mysqli $db, int $id, int $viewer_id, bool $is_ad
   return [
     'avg_rating'     => $avg_rating,
     'cats_by_group'  => $cats_by_group,
-    'default_image'  => 'images/recipe-book.png',
+    'default_image'  => 'images/recipe-book.jpg',
     'images'         => $images,
     'ingredients'    => $ingredients,
     'is_approved'    => $is_approved,

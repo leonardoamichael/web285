@@ -8,8 +8,8 @@
  */
 $errors = [
   'login_required' => [
-    'title'   => 'Access Restricted',
-    'message' => 'You must be logged in to use this resource.'
+    'title'   => 'Please Log In',
+    'message' => 'Log in or create an account to submit a recipe.'
   ],
 
   'not_found' => [
@@ -23,9 +23,10 @@ $errors = [
   ],
 
   'access_denied' => [
-    'title'   => 'Access Denied',
-    'message' => 'You do not have permission to view this page.'
+    'title'   => 'Sorry, This Page Is Not Available',
+    'message' => 'Your account does not have access to this page.'
   ],
+
 ];
 
 /**

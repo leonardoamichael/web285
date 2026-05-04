@@ -7,7 +7,7 @@
       rgba(255, 250, 245, 0.68),
       rgba(255, 250, 245, 0.78)
     ),
-    url("../../images/hero-kitchen.png") center / cover no-repeat;
+    url("../../images/hero-kitchen.jpg") center / cover no-repeat;
 
   border-bottom: 1px solid var(--border);
   padding: 2.6rem 1rem 2rem;

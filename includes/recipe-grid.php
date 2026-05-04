@@ -78,7 +78,7 @@ if (!empty($recipes) && is_array($recipes)) {
 
         <div class="recipe-tile-image">
           <img
-            src="<?= h($recipe['primary_image'] ?? 'images/recipe-book.png') ?>"
+            src="<?= h($recipe['primary_image'] ?? 'images/recipe-book.jpg') ?>"
             alt="<?= h($recipe['title_rec']) ?>"
             loading="lazy"
           >

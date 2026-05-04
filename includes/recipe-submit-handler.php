@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/image-functions.php';
+
 // includes/recipe-submit-handler.php
 
 /**
@@ -362,15 +364,14 @@ function handle_recipe_submit(mysqli $db): array
           continue;
         }
 
-        if ((int) $_FILES['images']['size'][$i] > 2_000_000) {
+        if ((int) $_FILES['images']['size'][$i] > 10_000_000) {
           continue;
         }
 
-        $ext = $allowed[$type];
-        $filename = "rec_{$recipe_id}_" . bin2hex(random_bytes(8)) . ".{$ext}";
+        $filename = "rec_{$recipe_id}_" . bin2hex(random_bytes(8)) . ".jpg";
         $dest_path = $upload_dir . $filename;
 
-        if (move_uploaded_file($tmp, $dest_path)) {
+        if (save_compressed_recipe_image($tmp, $dest_path)) {
           $path = $web_dir . $filename;
           $alt_to_use = ($alt !== '') ? $alt : $title;
 
