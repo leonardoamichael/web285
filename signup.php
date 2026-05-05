@@ -42,17 +42,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       'That username or email is already in use.';
   }
 
-  /* Create account + auto-login */
-  if (empty($form_errors)) {
+/* Verify Cloudflare Turnstile */
+if (empty($form_errors)) {
+  $turnstile_token = $_POST['cf-turnstile-response'] ?? '';
 
-    $new_id = create_user($db, $username, $email, $password);
+  $turnstile_secret = 'secret-key-goes-here';
 
-    $role_id = 2; // member
-    login_user($new_id, $username, $role_id);
+  $verify_response = file_get_contents(
+    'https://challenges.cloudflare.com/turnstile/v0/siteverify',
+    false,
+    stream_context_create([
+      'http' => [
+        'method'  => 'POST',
+        'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
+        'content' => http_build_query([
+          'secret'   => $turnstile_secret,
+          'response' => $turnstile_token,
+          'remoteip' => $_SERVER['REMOTE_ADDR'] ?? '',
+        ]),
+      ],
+    ])
+  );
 
-    header('Location: profile.php');
-    exit;
+  $turnstile_ok = false;
+
+  if ($verify_response !== false) {
+    $verify_data = json_decode($verify_response, true);
+    $turnstile_ok = !empty($verify_data['success']);
   }
+
+  if (!$turnstile_ok) {
+    $form_errors['general'] = 'Please complete the security check and try again.';
+  }
+}
+
+/* Create account + auto-login */
+if (empty($form_errors)) {
+
+  $new_id = create_user($db, $username, $email, $password);
+
+  $role_id = 2; // member
+  login_user($new_id, $username, $role_id);
+
+  header('Location: profile.php');
+  exit; }
 }
 ?>
 
@@ -134,8 +167,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <p role="alert"><?= h($form_errors['confirm_password']) ?></p>
       <?php endif; ?>
 
+    <div
+      class="cf-turnstile"
+      data-sitekey="0x4AAAAAADJEQWNI4j0C89aq"
+    ></div>
       <button type="submit">Sign up</button>
     </form>
+
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>   
 
     <p class="login-helper">
       Already have an account?
