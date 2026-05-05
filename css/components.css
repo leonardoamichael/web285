@@ -21,9 +21,9 @@
 }
 
 .tile:hover {
-  transform: translateY(-4px);
   border-color: rgba(0, 0, 0, 0.18);
   box-shadow: 0 18px 34px rgba(0, 0, 0, 0.14);
+  transform: translateY(-4px);
 }
 
 .tile a:hover {
@@ -58,10 +58,10 @@
 }
 
 .recipe-tile-image img {
-  width: 100%;
   height: 190px;
   object-fit: cover;
   transition: transform 0.3s ease;
+  width: 100%;
 }
 
 .recipe-tile:hover .recipe-tile-image img {
@@ -131,10 +131,10 @@
 
 .recipe-tile-badge-splash {
   background: rgba(194, 65, 45, 0.88);
+  bottom: 0.7rem;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.14);
   color: #fff;
   left: 0.7rem;
-  bottom: 0.7rem;
-  box-shadow: 0 8px 16px rgba(0,0,0,0.14);
 }
 
 /* Perfect-rating center highlight */
@@ -291,20 +291,17 @@
 
 .scale-controls button {
   appearance: none;
-  border: 1px solid var(--border-color, #cfcfcf);
   background: #fff;
-
-  padding: 6px 10px;
-  margin-right: 6px;
-
+  border: 1px solid var(--border-color, #cfcfcf);
   border-radius: 6px;
   cursor: pointer;
-
   font: inherit;
+  margin-right: 6px;
+  padding: 6px 10px;
 }
 
 .scale-controls button:hover {
-  background: rgba(0,0,0,0.04);
+  background: rgba(0, 0, 0, 0.04);
 }
 
 .scale-controls button:active {
@@ -312,7 +309,7 @@
 }
 
 .scale-controls button.is-active {
-  background: rgba(45,108,223,0.12);
+  background: rgba(45, 108, 223, 0.12);
   border-color: var(--accent-color, #2d6cdf);
   font-weight: 600;
 }
@@ -370,23 +367,23 @@
 }
 
 .usability-test {
-max-width: 720px;
-margin: auto;
-display: grid;
-gap: 1rem;
+  display: grid;
+  gap: 1rem;
+  margin: auto;
+  max-width: 720px;
 }
 
 .usability-test textarea {
-min-height: 90px;
+  min-height: 90px;
 }
 
 .usability-test input,
 .usability-test select,
 .usability-test textarea {
-width: 100%;
-padding: 0.6rem;
-border-radius: 8px;
-border: 1px solid rgba(0,0,0,.25);
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  border-radius: 8px;
+  padding: 0.6rem;
+  width: 100%;
 }
 
 /* =========================

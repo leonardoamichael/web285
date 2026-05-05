@@ -23,8 +23,8 @@
 }
 
 .home-hero-eyebrow {
-  font-weight: 700;
   color: var(--accent);
+  font-weight: 700;
   margin-bottom: 0.35rem;
 }
 
@@ -35,8 +35,8 @@
 
 .home-hero-text {
   font-size: 1.05rem;
-  opacity: 0.9;
   margin-bottom: 0.2rem;
+  opacity: 0.9;
 }
 
 .home-hero-content {
@@ -65,7 +65,7 @@
 }
 
 .home-section-heading p {
+  font-size: 0.95rem;
   margin: 0;
   opacity: 0.75;
-  font-size: 0.95rem;
 }

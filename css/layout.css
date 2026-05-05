@@ -3,12 +3,12 @@
 ========================= */
 
 .site-header {
+  backdrop-filter: blur(8px);
   background: rgba(255, 250, 245, 0.92);
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
   z-index: 100;
-  backdrop-filter: blur(8px);
 }
 
 .site-header-inner {
@@ -20,8 +20,8 @@
 }
 
 .site-branding {
-  display: flex;
   align-items: center;
+  display: flex;
 }
 
 .site-logo {
@@ -36,8 +36,8 @@
 }
 
 .site-logo:hover {
-  text-decoration: none;
   opacity: 0.92;
+  text-decoration: none;
 }
 
 /* =========================
@@ -99,15 +99,15 @@
 }
 
 .nav-links a:hover {
-  text-decoration: none;
   opacity: 0.8;
+  text-decoration: none;
 }
 
 .nav-right {
+  align-items: center;
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  align-items: center;
 }
 
 .nav-user,
@@ -145,8 +145,8 @@
 .nav-user {
   background: transparent;
   border: 0;
-  padding: 0.35rem 0.15rem;
   min-height: auto;
+  padding: 0.35rem 0.15rem;
 }
 
 .loginLink {
@@ -160,8 +160,8 @@
 
 #container {
   background-color: var(--surface);
-  border-radius: var(--radius);
   border: 1px solid rgba(0, 0, 0, 0.10);
+  border-radius: var(--radius);
   box-shadow: var(--container-shadow);
   margin: 1.25rem auto 0;
   max-width: 960px;
@@ -177,20 +177,19 @@ main {
 ========================= */
 
 .site-footer {
-  margin-top: 2rem;
+  background: rgba(255, 255, 255, 0.75);
   border-top: 1px solid var(--border);
-  background: rgba(255,255,255,0.75);
+  margin-top: 2rem;
 }
 
 .footer-inner {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 1rem 1rem 0.5rem;
-
-  display: flex;
-  justify-content: space-between;
   align-items: flex-start;
+  display: flex;
   gap: 1rem;
+  justify-content: space-between;
+  margin: 0 auto;
+  max-width: 1100px;
+  padding: 1rem 1rem 0.5rem;
 }
 
 .footer-brand strong {
@@ -198,42 +197,33 @@ main {
 }
 
 .footer-tagline {
-  margin: 0.25rem 0 0;
   font-size: 0.9rem;
+  margin: 0.25rem 0 0;
   opacity: 0.75;
 }
 
 .footer-links {
   display: flex;
-  gap: 1rem;
   flex-wrap: wrap;
+  gap: 1rem;
 }
 
 .footer-links a {
-  text-decoration: none;
-  font-size: 0.95rem;
-}
-
-.footer-links a:hover {
-  text-decoration: underline;
-}
-
-.footer-bottom {
-  text-align: center;
-  padding: 0.5rem 1rem 1rem;
-  font-size: 0.85rem;
-  opacity: 0.75;
-}
-
-.footer-links a {
-  text-decoration: none;
   font-size: 0.95rem;
   opacity: 0.85;
+  text-decoration: none;
 }
 
 .footer-links a:hover {
   opacity: 1;
   text-decoration: underline;
+}
+
+.footer-bottom {
+  font-size: 0.85rem;
+  opacity: 0.75;
+  padding: 0.5rem 1rem 1rem;
+  text-align: center;
 }
 
 /* =========================
@@ -281,19 +271,16 @@ main {
     flex-wrap: wrap;
     gap: 0.5rem;
     justify-content: flex-end;
+    max-width: 320px;
+    min-width: 0;
   }
 
-  .nav-right {
-  max-width: 320px;
-  min-width: 0;
-}
-
-.nav-logout,
-.loginLink {
-  max-width: 100%;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+  .nav-logout,
+  .loginLink {
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }

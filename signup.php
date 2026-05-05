@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 if (empty($form_errors)) {
   $turnstile_token = $_POST['cf-turnstile-response'] ?? '';
 
-  $turnstile_secret = 'secret-key-goes-here';
+  $turnstile_secret = '0x4AAAAAADJEQbeZk21X2BvnT39DyBxbkoY';
 
   $verify_response = file_get_contents(
     'https://challenges.cloudflare.com/turnstile/v0/siteverify',

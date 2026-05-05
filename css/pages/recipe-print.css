@@ -197,11 +197,11 @@
     padding-bottom: 0.12in;
   }
 
-.recipe-print-header h1 {
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 20pt;
-  font-weight: 700;
-}
+  .recipe-print-header h1 {
+   font-family: Georgia, "Times New Roman", serif;
+   font-size: 20pt;
+   font-weight: 700;
+  }
 
   .recipe-print-meta,
   .recipe-print-description,
@@ -217,11 +217,11 @@
     grid-template-columns: repeat(2, 1fr);
   }
 
-.recipe-print-photos img {
+ .recipe-print-photos img {
   height: auto;
   max-height: 2in;
   object-fit: contain;
-}
+  }
 
   .recipe-print-columns {
     display: grid;
